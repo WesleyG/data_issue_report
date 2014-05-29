@@ -36,13 +36,18 @@ ticket_to
 <cfinclude template="../cf_includes/set_defaults.htm">
 
 	<cfquery name="q_data_issues" datasource="#application.sys_ds#">
-	SELECT issue.pk_TAG_data_issues issue
+	SELECT issue.pk_TAG_data_issues
 	      ,issue.cid
 	      ,issue.k_tag_issue_type
 		  ,itype.issue_type_name
 	      ,issue.k_tag_issue_reason
 		  ,ireason.issue_reason_name
-	      ,issue.is_ignored
+		  ,issue.is_ignored
+	      ,CASE issue.is_ignored
+	      	WHEN 0 THEN 'Not Ignored'
+	      	WHEN 1 THEN 'Ignored'
+	      	END
+	      	AS is_ignored_word
 	      ,issue.date_opened
 	      ,issue.date_closed
 	      ,issue.date_ignored
@@ -53,6 +58,8 @@ ticket_to
 		  ,m.member_id
 	      ,issue.k_mem_membership_window
 	      ,issue.k_brk_entity_contract
+	      ,b.broker_id
+	      ,c.name
 	  FROM dbo.TAG_data_issues issue
 		INNER JOIN TAG_issue_type itype
 			on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
@@ -60,6 +67,11 @@ ticket_to
 			on issue.k_TAG_issue_reason = ireason.pk_TAG_issue_reason
 		INNER JOIN mem_member_master m
 			on issue.k_mem_member_master = m.pk_mem_member_master
+		INNER JOIN brk_broker b
+			on issue.k_brk_broker = b.pk_brk_broker
+		INNER JOIN brk_entity_contract c
+			on issue.k_brk_entity_contract = c.pk_brk_entity_contract
+			
 	</cfquery>
 
 		
@@ -104,26 +116,41 @@ function HideComplete() {
 
 
 	<div style="border-style:solid; border-width: 1px; border-radius:15px; width:900; 
-				margin: 0 auto 0 auto; padding: 10px; background:#F6CEEC;">
+				margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
 		<div align="center">
-		<span><b>Latest Ticket</b></span>
+		<span><b>Data Issues</b></span>
 		<table id="cpy" class="list_table scrolling" scroll_height="700" width="850">
 			<thead>
 			<tr class="list_col_hdr">
 				<td width="50" align="center">Issue Type</td>
-				<td>Issue Type</td>
 				<td width="60" align="center">Reason</td>
-				<td>Reason</td>
-				<td width="80" align="center">Date Submitted</td>
-				<td width="150" align="center">Status</td>
+				<td width="60" align="center">Ignored</td>		
+				<td width="60" align="center">Ignored 2</td>
+				<td width="60" align="center">Date Opened</td>
+				<td width="60" align="center">Date Closed</td>
+				<td width="60" align="center">Date Ignored</td>
+				<td width="60" align="center">Rep ID</td>
+				<td width="60" align="center">Contract ID</td>
+				<td width="60" align="center">Contract Name</td>
 			</tr>
 			</thead>
 			<cfset toggle = 1>
 			<cfoutput query = "q_data_issues">
 			<cfif toggle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset toggle = toggle*-1>
 			<tr class="list_even_odd">
-				<td>#issue_type_name#</td>
-				<td>#issue_reason_name#</td>
+				<td width="50" align="center">#issue_type_name#</td>
+				<td width="60" align="center">#issue_reason_name#</td>
+				<td width="60" align="center">#is_ignored_word#</td>
+				<td width="60" align="center" >
+					<input type="checkbox" name="Ignore_box" value="#pk_TAG_data_issues#"
+					<cfif #is_ignored# EQ '1'>checked</cfif> >
+				</td>
+				<td width="60" align="center">#date_opened#</td>
+				<td width="60" align="center">#date_closed#</td>
+				<td width="60" align="center">#date_ignored#</td>
+				<td width="60" align="center">#broker_id#</td>
+				<td width="60" align="center">#k_brk_entity_contract#</td>
+				<td width="60" align="center">#name#</td>
 			</tr>
 			</cfoutput>		
 		</table>
@@ -133,3 +160,4 @@ function HideComplete() {
 
 <cfset ajaxonload("doScrollTables")>
 <cfset ajaxonload("makeSortable")>
+
