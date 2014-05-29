@@ -1,0 +1,135 @@
+<cfinclude template = "../cf_includes/cf_PRE_template_include.htm">
+<cfparam name = "display_mode" default = "">
+
+<!--- set form and list files --->
+<cfset form_name="data_issue_report.htm">
+<cfset list_file="data_issue_report.htm">
+
+<!--- page title --->
+<cfset page_title="Data Issue Report">
+<cfsavecontent variable="page_description">
+
+</cfsavecontent>
+
+<!--- page header --->
+<cfinclude template = "../templates/header.htm">
+
+
+<!--- WGG 5/27/2014 this is if you are passing in variables
+		everything which is being chosen on the report like
+		dates or broker id --->
+<cfset default_query_name = "">
+<cfset default_variables = "
+member_id
+k_data_source
+k_ticket_status
+date_from
+date_to
+pri_from
+pri_to
+comp_from
+comp_to
+ticket_from
+ticket_to
+">
+<!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
+<cfinclude template="../cf_includes/set_defaults.htm">
+
+	<cfquery name="q_data_issues" datasource="#application.sys_ds#">
+	SELECT issue.pk_TAG_data_issues issue
+	      ,issue.cid
+	      ,issue.k_tag_issue_type
+		  ,itype.issue_type_name
+	      ,issue.k_tag_issue_reason
+		  ,ireason.issue_reason_name
+	      ,issue.is_ignored
+	      ,issue.date_opened
+	      ,issue.date_closed
+	      ,issue.date_ignored
+	      ,issue.is_resolved
+	      ,issue.date_resolved
+	      ,issue.k_brk_broker
+	      ,issue.k_mem_member_master
+		  ,m.member_id
+	      ,issue.k_mem_membership_window
+	      ,issue.k_brk_entity_contract
+	  FROM dbo.TAG_data_issues issue
+		INNER JOIN TAG_issue_type itype
+			on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
+		INNER JOIN TAG_issue_reason ireason
+			on issue.k_TAG_issue_reason = ireason.pk_TAG_issue_reason
+		INNER JOIN mem_member_master m
+			on issue.k_mem_member_master = m.pk_mem_member_master
+	</cfquery>
+
+		
+	
+<script>
+function Status_Submitted() {
+	$("#k_ticket_status").val(0);
+}
+
+function reorder(x,y,z){
+	//alert(x+y+z);
+	
+  $.ajax({
+           type: "POST",
+           url: "ticket_reorder.cfm",
+           data: { kID: y, pID: x, clientid: z},
+           success: function(){
+   				location.reload(); 
+  			}
+        })
+    }
+    
+function OpenComplete() {
+	//alert('test');
+	  $.ajax({
+           type: "POST",
+           url: "ticket_complete.htm",
+           data: { clientid: 3},
+           success: function(data){
+   				$('#complete_win').html(data);
+  			}
+        })
+    }
+
+
+function HideComplete() {
+	$("#CompleteDiv").hide();
+}
+
+</script>
+
+
+
+	<div style="border-style:solid; border-width: 1px; border-radius:15px; width:900; 
+				margin: 0 auto 0 auto; padding: 10px; background:#F6CEEC;">
+		<div align="center">
+		<span><b>Latest Ticket</b></span>
+		<table id="cpy" class="list_table scrolling" scroll_height="700" width="850">
+			<thead>
+			<tr class="list_col_hdr">
+				<td width="50" align="center">Issue Type</td>
+				<td>Issue Type</td>
+				<td width="60" align="center">Reason</td>
+				<td>Reason</td>
+				<td width="80" align="center">Date Submitted</td>
+				<td width="150" align="center">Status</td>
+			</tr>
+			</thead>
+			<cfset toggle = 1>
+			<cfoutput query = "q_data_issues">
+			<cfif toggle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset toggle = toggle*-1>
+			<tr class="list_even_odd">
+				<td>#issue_type_name#</td>
+				<td>#issue_reason_name#</td>
+			</tr>
+			</cfoutput>		
+		</table>
+		</div>
+	</div>
+	<br>
+
+<cfset ajaxonload("doScrollTables")>
+<cfset ajaxonload("makeSortable")>
