@@ -59,17 +59,18 @@ ticket_to
 	      ,issue.k_mem_membership_window
 	      ,issue.k_brk_entity_contract
 	      ,b.broker_id
+	      ,b.name AS broker_name
 	      ,c.name
 	  FROM dbo.TAG_data_issues issue
-		INNER JOIN TAG_issue_type itype
+		LEFT JOIN TAG_issue_type itype
 			on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
-		INNER JOIN TAG_issue_reason ireason
+		LEFT JOIN TAG_issue_reason ireason
 			on issue.k_TAG_issue_reason = ireason.pk_TAG_issue_reason
-		INNER JOIN mem_member_master m
+		LEFT JOIN mem_member_master m
 			on issue.k_mem_member_master = m.pk_mem_member_master
-		INNER JOIN brk_broker b
+		LEFT JOIN brk_broker b
 			on issue.k_brk_broker = b.pk_brk_broker
-		INNER JOIN brk_entity_contract c
+		LEFT JOIN brk_entity_contract c
 			on issue.k_brk_entity_contract = c.pk_brk_entity_contract
 			
 	</cfquery>
@@ -77,6 +78,7 @@ ticket_to
 		
 	
 <script>
+
 function Status_Submitted() {
 	$("#k_ticket_status").val(0);
 }
@@ -113,13 +115,13 @@ function HideComplete() {
 
 </script>
 
+<form>
 
-
-	<div style="border-style:solid; border-width: 1px; border-radius:15px; width:900; 
+	<div style="border-style:solid; border-width: 1px; border-radius:15px; width:1500; 
 				margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
 		<div align="center">
 		<span><b>Data Issues</b></span>
-		<table id="cpy" class="list_table scrolling" scroll_height="700" width="850">
+		<table id="cpy" class="list_table scrolling" scroll_height="1500" width="1450">
 			<thead>
 			<tr class="list_col_hdr">
 				<td width="50" align="center">Issue Type</td>
@@ -128,10 +130,12 @@ function HideComplete() {
 				<td width="60" align="center">Ignored 2</td>
 				<td width="60" align="center">Date Opened</td>
 				<td width="60" align="center">Date Closed</td>
-				<td width="60" align="center">Date Ignored</td>
+				<td width="30" align="center">Date Ignored</td>
 				<td width="60" align="center">Rep ID</td>
+				<td width="60" align="center">Rep Name</td>
 				<td width="60" align="center">Contract ID</td>
 				<td width="60" align="center">Contract Name</td>
+				<td width="60" align="center">Member ID</td>
 			</tr>
 			</thead>
 			<cfset toggle = 1>
@@ -142,22 +146,27 @@ function HideComplete() {
 				<td width="60" align="center">#issue_reason_name#</td>
 				<td width="60" align="center">#is_ignored_word#</td>
 				<td width="60" align="center" >
-					<input type="checkbox" name="Ignore_box" value="#pk_TAG_data_issues#"
-					<cfif #is_ignored# EQ '1'>checked</cfif> >
+					<select name="is_ignored_box" id="is_ignored_box">
+					<option value="0" <cfif is_ignored eq '0'>Selected="selected"</cfif>>Not Ignored</option>
+					<option value="1" <cfif is_ignored eq '1'>Selected="selected"</cfif>>Ignored</option>	
 				</td>
 				<td width="60" align="center">#date_opened#</td>
 				<td width="60" align="center">#date_closed#</td>
-				<td width="60" align="center">#date_ignored#</td>
+				<td width="30" align="center">#date_ignored#</td>
 				<td width="60" align="center">#broker_id#</td>
+				<td width="60" align="center">#broker_name#</td>				
 				<td width="60" align="center">#k_brk_entity_contract#</td>
 				<td width="60" align="center">#name#</td>
+				<td width="60" align="center">#member_id#</td>
 			</tr>
 			</cfoutput>		
 		</table>
 		</div>
 	</div>
 	<br>
+</form>
 
 <cfset ajaxonload("doScrollTables")>
 <cfset ajaxonload("makeSortable")>
+
 
