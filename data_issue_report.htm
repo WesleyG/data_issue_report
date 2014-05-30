@@ -16,8 +16,8 @@
 
 
 <!--- WGG 5/27/2014 this is if you are passing in variables
-		everything which is being chosen on the report like
-		dates or broker id --->
+    	everything which is being chosen on the report like
+    	dates or broker id --->
 <cfset default_query_name = "">
 <cfset default_variables = "
 member_id
@@ -37,47 +37,46 @@ ticket_to
 
 	<cfquery name="q_data_issues" datasource="#application.sys_ds#">
 	SELECT issue.pk_TAG_data_issues
-	      ,issue.cid
-	      ,issue.k_tag_issue_type
-		  ,itype.issue_type_name
-	      ,issue.k_tag_issue_reason
-		  ,ireason.issue_reason_name
-		  ,issue.is_ignored
-	      ,CASE issue.is_ignored
-	      	WHEN 0 THEN 'Not Ignored'
-	      	WHEN 1 THEN 'Ignored'
-	      	END
-	      	AS is_ignored_word
-	      ,issue.date_opened
-	      ,issue.date_closed
-	      ,issue.date_ignored
-	      ,issue.is_resolved
-	      ,issue.date_resolved
-	      ,issue.k_brk_broker
-	      ,issue.k_mem_member_master
-		  ,m.member_id
-		  ,m.last_name
-	      ,issue.k_mem_membership_window
-	      ,issue.k_brk_entity_contract
-	      ,b.broker_id
-	      ,b.name AS broker_name
-	      ,c.name
-	  FROM dbo.TAG_data_issues issue
-		LEFT JOIN TAG_issue_type itype
-			on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
-		LEFT JOIN TAG_issue_reason ireason
-			on issue.k_TAG_issue_reason = ireason.pk_TAG_issue_reason
-		LEFT JOIN mem_member_master m
-			on issue.k_mem_member_master = m.pk_mem_member_master
-		LEFT JOIN brk_broker b
-			on issue.k_brk_broker = b.pk_brk_broker
-		LEFT JOIN brk_entity_contract c
-			on issue.k_brk_entity_contract = c.pk_brk_entity_contract
-			
+      	,issue.cid
+      	,issue.k_tag_issue_type
+      	,itype.issue_type_name
+      	,issue.k_tag_issue_reason
+      	,ireason.issue_reason_name
+      	,issue.is_ignored
+      	,CASE issue.is_ignored
+          	WHEN 0 THEN 'Not Ignored'
+          	WHEN 1 THEN 'Ignored'
+          	END
+          	AS is_ignored_word
+      	,issue.date_opened
+      	,issue.date_closed
+      	,issue.date_ignored
+      	,issue.is_resolved
+      	,issue.date_resolved
+      	,issue.k_brk_broker
+      	,issue.k_mem_member_master
+      	,m.member_id
+      	,issue.k_mem_membership_window
+      	,issue.k_brk_entity_contract
+      	,b.broker_id
+      	,b.name AS broker_name
+      	,c.name
+  	FROM dbo.TAG_data_issues issue
+    	LEFT JOIN TAG_issue_type itype
+        	on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
+    	LEFT JOIN TAG_issue_reason ireason
+        	on issue.k_TAG_issue_reason = ireason.pk_TAG_issue_reason
+    	LEFT JOIN mem_member_master m
+        	on issue.k_mem_member_master = m.pk_mem_member_master
+    	LEFT JOIN brk_broker b
+        	on issue.k_brk_broker = b.pk_brk_broker
+    	LEFT JOIN brk_entity_contract c
+        	on issue.k_brk_entity_contract = c.pk_brk_entity_contract
+       	 
 	</cfquery>
 
-		
-	
+   	 
+    
 <script>
 
 function Status_Submitted() {
@@ -86,28 +85,28 @@ function Status_Submitted() {
 
 function reorder(x,y,z){
 	//alert(x+y+z);
-	
+    
   $.ajax({
-           type: "POST",
-           url: "ticket_reorder.cfm",
-           data: { kID: y, pID: x, clientid: z},
-           success: function(){
-   				location.reload(); 
-  			}
-        })
-    }
+       	type: "POST",
+       	url: "ticket_reorder.cfm",
+       	data: { kID: y, pID: x, clientid: z},
+       	success: function(){
+               	location.reload();
+          	}
+    	})
+	}
     
 function OpenComplete() {
 	//alert('test');
-	  $.ajax({
-           type: "POST",
-           url: "ticket_complete.htm",
-           data: { clientid: 3},
-           success: function(data){
-   				$('#complete_win').html(data);
-  			}
-        })
-    }
+  	$.ajax({
+       	type: "POST",
+       	url: "ticket_complete.htm",
+       	data: { clientid: 3},
+       	success: function(data){
+               	$('#complete_win').html(data);
+          	}
+    	})
+	}
 
 
 function HideComplete() {
@@ -116,78 +115,67 @@ function HideComplete() {
 
 </script>
 
-<form method="post" name="test" action="data_issue_report.htm">
-
-	<div style="border-style:solid; border-width: 1px; border-radius:15px; width:1500; 
-				margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
-		<div align="center">
-		<span><b>Data Issues</b></span>
-		<table id="cpy" class="list_table scrolling" scroll_height="1500" width="1450">
-			<thead>
-			<tr class="list_col_hdr">
-				<td width="50" align="center">Issue Type</td>
-				<td width="60" align="center">Reason</td>
-				<td width="60" align="center">Ignored</td>		
-				<td width="60" align="center">Ignored 2</td>
-				<td width="60" align="center">Ignored Comment</td>
-				<td width="60" align="center">Date Opened</td>
-				<td width="60" align="center">Date Closed</td>
-				<td width="30" align="center">Date Ignored</td>
-				<td width="60" align="center">Rep ID<br>Rep Name</td>
-				<td width="60" align="center">Contract ID<br>Contract Name</td>
-				<td width="60" align="center">Member ID<br>Name</td>
-			</tr>
-			</thead>
-			<cfset toggle = 1>
-			<cfoutput query = "q_data_issues">
-			<cfif toggle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset toggle = toggle*-1>
-			<tr class="list_even_odd">
-				<td width="50" align="center">#issue_type_name#</td>
-				<td width="60" align="center">#issue_reason_name#</td>
-				<td width="60" align="center">#is_ignored_word#</td>
-				<!--- WGG dropdown to select if Ignored (1) or not ignored (0) --->
-				<td width="60" align="center" >
-					<select name="is_ignored_box" id="is_ignored_box">
-					<option value="0" <cfif is_ignored eq '0'>Selected="selected"</cfif>>Not Ignored</option>
-					<option value="1" <cfif is_ignored eq '1'>Selected="selected"</cfif>>Ignored</option>	
-				</td>
-				<td><input type="text" id="field" name="field" value="field" /></td>
-				<td width="60" align="center">#date_opened#</td>
-				<td width="60" align="center">#date_closed#</td>
-				<td width="30" align="center">#date_ignored#</td>
-				<td width="60" align="center">#broker_id#<br>#broker_name#</td>			
-				<td width="60" align="center">#k_brk_entity_contract#<br>#name#</td>
-				<td width="60" align="center">#member_id#<br>#last_name#</td>
-			</tr>
-			</cfoutput>		
-		</table>
-		<br>
-		<input class="form_submit_button" type="submit" value="submit" name="submit">
-		</div>
-	</div>
-	<br>
-</form>
-
-<!--- WGG 05/30/2014 Generates an output of the primary key of pk_TAG_data_issues and the 
-		ignored setting--->
 <cfif isdefined('form.is_ignored_box')>
-	<cfloop list="#form.is_ignored_box#" index="name">
-		<cfset ignore = listFirst(name, "_")>
-		<cfset pk = listRest(name, "_")>
-		<cfoutput>pk=#pk# - ignore=#ignore#<br></cfoutput>
-		<cfoutput>#name#</cfoutput>
-		
-		<!--- WGG 5/30/2014 Update ignored status based on user drop down select 
-		<cfquery name="q_ignore_update" datasource="#application.sys_ds#">
-			UPDATE TAG_data_issues
-			SET TAG_data_issues.is_ignored = #ignore#
-			WHERE #pk# = di.pk_TAG_data_issues
-		</cfquery>
-		--->
-	</cfloop>
+    <cfloop list="#form.is_ignored_box#" index="name">
+   	 <cfset ignore = listFirst(name, "_")>
+   	 <cfset pk = listRest(name, "_")>
+   	 <cfoutput>pk=#pk# - ignore=#ignore#<br></cfoutput>
+    </cfloop>
 </cfif>
 
 
+<form method="POST" action="data_issue_report.htm" name="test">    
+    
+	<div style="border-style:solid; border-width: 1px; border-radius:15px; width:1500;
+            	margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
+    	<div align="center">
+    	<span><b>Data Issues</b></span>
+    	<table id="cpy" class="list_table scrolling" scroll_height="1500" width="1450">
+        	<thead>
+        	<tr class="list_col_hdr">
+            	<td width="50" align="center">Issue Type</td>
+            	<td width="60" align="center">Reason</td>
+            	<td width="60" align="center">Ignored</td>   	 
+            	<td width="60" align="center">Ignored 2</td>
+            	<td width="60" align="center">Date Opened</td>
+            	<td width="60" align="center">Date Closed</td>
+            	<td width="30" align="center">Date Ignored</td>
+            	<td width="60" align="center">Rep ID</td>
+            	<td width="60" align="center">Rep Name</td>
+            	<td width="60" align="center">Contract ID</td>
+            	<td width="60" align="center">Contract Name</td>
+            	<td width="60" align="center">Member ID</td>
+        	</tr>
+        	</thead>
+        	<cfset toggle = 1>
+        	<cfoutput query = "q_data_issues">
+        	<cfif toggle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset toggle = toggle*-1>
+        	<tr class="list_even_odd">
+            	<td width="50" align="center">#issue_type_name#</td>
+            	<td width="60" align="center">#issue_reason_name#</td>
+            	<td width="60" align="center">#is_ignored_word#</td>
+            	<td width="60" align="center" >
+                	<select name="is_ignored_box" id="is_ignored_box">
+                	<option value="0_#pk_TAG_data_issues#" <cfif is_ignored eq '0'>Selected="selected"</cfif>>Not Ignored</option>
+                	<option value="1_#pk_TAG_data_issues#" <cfif is_ignored eq '1'>Selected="selected"</cfif>>Ignored</option>    
+            	</td>
+            	<td width="60" align="center">#date_opened#</td>
+            	<td width="60" align="center">#date_closed#</td>
+            	<td width="30" align="center">#date_ignored#</td>
+            	<td width="60" align="center">#broker_id#</td>
+            	<td width="60" align="center">#broker_name#</td>           	 
+            	<td width="60" align="center">#k_brk_entity_contract#</td>
+            	<td width="60" align="center">#name#</td>
+            	<td width="60" align="center">#member_id#</td>
+        	</tr>
+        	</cfoutput>   	 
+    	</table>
+   	 <br>
+   	 <input class="form_submit_button" type="submit" value="Submit" name="Submit">
+    	</div>
+	</div>
+	<br>
+</form>
 
 <cfset ajaxonload("doScrollTables")>
 <cfset ajaxonload("makeSortable")>
