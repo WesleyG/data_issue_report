@@ -145,6 +145,7 @@ function HideComplete() {
       <table id="cpy" class="list_table scrolling" scroll_height="1500" width="1450">
           <thead>
           <tr class="list_col_hdr">
+        <td width="50" align="center">Status</td><!--- WGG 0 --->
               <td width="50" align="center">Issue Type</td><!--- WGG 1 --->
               <td width="60" align="center">Reason</td><!--- WGG 2 --->      
               <td width="60" align="center">Ignored</td><!--- WGG 3 --->      
@@ -162,7 +163,8 @@ function HideComplete() {
           <cfoutput query = "q_data_issues">
           <cfif toggle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset toggle = toggle*-1>
           <tr class="list_even_odd">
-              <td width="50" align="center">#issue_type_name#</td><!--- WGG 1 --->
+              <td width="50" align="center">New data field here</td><!--- WGG 0 --->
+        <td width="50" align="center">#issue_type_name#</td><!--- WGG 1 --->
               <td width="60" align="center">#issue_reason_name#</td><!--- WGG 2 --->
               <td width="60" align="center" ><!--- WGG 3 --->
                   <select name="is_ignored_box" id="is_ignored_box">
@@ -191,6 +193,3 @@ function HideComplete() {
 
 <cfset ajaxonload("doScrollTables")>
 <cfset ajaxonload("makeSortable")>
-
-
-
