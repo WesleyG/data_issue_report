@@ -56,6 +56,7 @@ ticket_to
 
   <cfquery name="q_data_issues" datasource="#application.sys_ds#">
   SELECT issue.pk_TAG_data_issues
+    ,s.issue_status_name
         ,issue.cid
         ,issue.k_tag_issue_type
         ,itype.issue_type_name
@@ -91,6 +92,8 @@ ticket_to
           on issue.k_brk_broker = b.pk_brk_broker
       LEFT JOIN brk_entity_contract c
           on issue.k_brk_entity_contract = c.pk_brk_entity_contract
+    LEFT JOIN tag_issue_status s
+      on issue.k_tag_issue_status = s.pk_tag_issue_status
          
   </cfquery>
 
@@ -163,7 +166,7 @@ function HideComplete() {
           <cfoutput query = "q_data_issues">
           <cfif toggle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset toggle = toggle*-1>
           <tr class="list_even_odd">
-              <td width="50" align="center">New data field here</td><!--- WGG 0 --->
+              <td width="50" align="center">New data fielde</td><!--- WGG 0 --->
         <td width="50" align="center">#issue_type_name#</td><!--- WGG 1 --->
               <td width="60" align="center">#issue_reason_name#</td><!--- WGG 2 --->
               <td width="60" align="center" ><!--- WGG 3 --->
