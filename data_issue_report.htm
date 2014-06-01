@@ -184,8 +184,8 @@ function HideComplete() {
           <tr class="list_even_odd">
               <td width="160" align="center" ><!--- WGG 0 --->
                   <select name="status_box" id="status_box">
-                  <option value="0_#pk_TAG_data_issues#" <cfif is_ignored eq '0'>Selected="selected"</cfif>>Not Reviewed</option>
-                  <option value="1_#pk_TAG_data_issues#" <cfif is_ignored eq '1'>Selected="selected"</cfif>>Reviewed, Awaiting Calc</option>    
+                  <option value="0_#pk_TAG_data_issues#" <cfif k_TAG_issue_status eq '0'>Selected="selected"</cfif>>Not Reviewed</option>
+                  <option value="1_#pk_TAG_data_issues#" <cfif k_TAG_issue_status eq '1'>Selected="selected"</cfif>>Reviewed, Awaiting Calc</option>    
               </td>
         <td width="50" align="center">#issue_type_name#</td><!--- WGG 1 --->
               <td width="60" align="center">#issue_reason_name#</td><!--- WGG 2 --->
