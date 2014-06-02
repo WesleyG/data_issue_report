@@ -7,13 +7,9 @@
 
 <!--- page title --->
 <cfset page_title="Data Issue Report">
-<cfsavecontent variable="page_description">
-
-</cfsavecontent>
 
 <!--- page header --->
 <cfinclude template = "../templates/header.htm">
-
 
 <!--- WGG 5/27/2014 this is if you are passing in variables
       everything which is being chosen on the report like
@@ -36,7 +32,7 @@ ticket_to
 <cfinclude template="../cf_includes/set_defaults.htm">
 
 
-<!--- WGG 5/30/2014 update the ignored statua --->
+<!--- WGG 5/30/2014 update the status of the issue --->
 <cfif isdefined('form.status_box')>
     <cfloop list="#form.status_box#" index="name">
      <cfset status = listFirst(name, "_")>
@@ -52,6 +48,7 @@ ticket_to
     </cfloop>
 </cfif>
 
+<!--- WGG 6/1/2014 update if the issue is ignored --->
 <cfif isdefined('form.is_ignored_box')>
     <cfloop list="#form.is_ignored_box#" index="name">
      <cfset ignore = listFirst(name, "_")>
@@ -67,9 +64,8 @@ ticket_to
     </cfloop>
 </cfif>
 
-
-
-  <cfquery name="q_data_issues" datasource="#application.sys_ds#">
+<!--- WGG 6/1/2014 Query to populate page --->
+<cfquery name="q_data_issues" datasource="#application.sys_ds#">
   SELECT issue.pk_TAG_data_issues
     ,issue.k_TAG_issue_status
     ,s.issue_status_name
@@ -110,51 +106,9 @@ ticket_to
           on issue.k_brk_entity_contract = c.pk_brk_entity_contract
     LEFT JOIN tag_issue_status s
       on issue.k_tag_issue_status = s.pk_tag_issue_status
-         
-  </cfquery>
+</cfquery>
 
-
-    
-<script>
-
-function Status_Submitted() {
-  $("#k_ticket_status").val(0);
-}
-
-function reorder(x,y,z){
-  //alert(x+y+z);
-    
-  $.ajax({
-        type: "POST",
-        url: "ticket_reorder.cfm",
-        data: { kID: y, pID: x, clientid: z},
-        success: function(){
-                location.reload();
-            }
-      })
-  }
-    
-function OpenComplete() {
-  //alert('test');
-    $.ajax({
-        type: "POST",
-        url: "ticket_complete.htm",
-        data: { clientid: 3},
-        success: function(data){
-                $('#complete_win').html(data);
-            }
-      })
-  }
-
-
-function HideComplete() {
-  $("#CompleteDiv").hide();
-}
-
-</script>
-
-
-
+<!--- WGG 6/1/2014 Display issues on page --->
 <form method="POST" action="data_issue_report.htm" name="test">    
     
   <div style="border-style:solid; border-width: 1px; border-radius:15px; width:1500;
@@ -211,8 +165,6 @@ function HideComplete() {
   </div>
   <br>
 </form>
-
-
 
 <cfset ajaxonload("doScrollTables")>
 <cfset ajaxonload("makeSortable")>
