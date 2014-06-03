@@ -140,7 +140,6 @@ ticket_to
               <td width="60" align="center">Rep ID<br>Rep Name</td><!--- WGG 7 --->
               <td width="60" align="center">Contract ID<br>Contract Name</td><!--- WGG 10 --->
               <td width="60" align="center">Member ID</td><!--- WGG 11 --->
-        <td width="60" align="center">View Member</td><!--- WGG 11 --->
           </tr>
           </thead>
           <cfset toggle = 1>
@@ -163,10 +162,12 @@ ticket_to
               <td width="60" align="center">#dateformat(date_opened,"medium")#</td><!--- WGG 4 --->
               <td width="60" align="center">#date_closed#</td><!--- WGG 5 --->
               <td width="30" align="center">#date_ignored#</td><!--- WGG 6 --->
-              <td width="60" align="center">#broker_id#<br>#broker_name#</td><!--- WGG 8 --->              
+              <td width="60" align="center">#broker_id#<br>#broker_name#</td><!--- WGG 8 ---> 
+                     
               <td width="60" align="center">#k_brk_entity_contract#<br>#name#</td><!--- WGG 10 --->
-              <td width="60" align="center">#member_id#</td><!--- WGG 11 --->
-        <td onclick="openMemberTab(#PK_mem_member_master#,'#jsStringFormat("#first_name# #last_name# - #hicnbr# -#member_id#")#');" class="list_col_data_#even_odd# editbutton">View</td>
+              <td width="60" align="center"><a href="../members/list_member.htm?memid=#pk_mem_member_master#">#member_id#</td><!--- WGG 11 --->
+        <!--- https://molina.sb.evolvespm.com/members/list_member.htm?memid=1310773 --->
+      
           </tr>
           </cfoutput>      
       </table>
