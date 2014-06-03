@@ -37,7 +37,9 @@ ticket_to
     <cfloop list="#form.status_box#" index="name">
      <cfset status = listFirst(name, "_")>
      <cfset pk = listRest(name, "_")>
-     <cfoutput>pk=#pk# - status=#status#<br></cfoutput>
+     <!--- WGG 6/2/2014 comment back in to see strings 
+   <cfoutput>pk=#pk# - status=#status#<br></cfoutput> 
+   --->
   
     <cfquery name="q_update_status" datasource="#application.sys_ds#">
       UPDATE TAG_data_issues
@@ -53,8 +55,9 @@ ticket_to
     <cfloop list="#form.is_ignored_box#" index="name">
      <cfset ignore = listFirst(name, "_")>
      <cfset pk = listRest(name, "_")>
+  <!--- WGG 6/2/2014
      <cfoutput>pk=#pk# - ignore=#ignore#<br></cfoutput>
-  
+  --->
     <cfquery name="q_update_ignore" datasource="#application.sys_ds#">
       UPDATE TAG_data_issues
       SET TAG_data_issues.is_ignored = #ignore#
@@ -84,10 +87,16 @@ ticket_to
         ,issue.date_closed
         ,issue.date_ignored
         ,issue.is_resolved
+        ,CASE issue.is_resolved
+            WHEN 0 THEN 'Not Resolved'
+            WHEN 1 THEN 'Resolved'
+            END
+            AS is_resolved_word
         ,issue.date_resolved
         ,issue.k_brk_broker
         ,issue.k_mem_member_master
         ,m.member_id
+    ,m.pk_mem_member_master
         ,issue.k_mem_membership_window
         ,issue.k_brk_entity_contract
         ,b.broker_id
@@ -106,6 +115,8 @@ ticket_to
           on issue.k_brk_entity_contract = c.pk_brk_entity_contract
     LEFT JOIN tag_issue_status s
       on issue.k_tag_issue_status = s.pk_tag_issue_status
+  ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
+    
 </cfquery>
 
 <!--- WGG 6/1/2014 Display issues on page --->
@@ -118,44 +129,44 @@ ticket_to
       <table id="cpy" class="list_table scrolling" scroll_height="1500" width="1450">
           <thead>
           <tr class="list_col_hdr">
-        <td width="160" align="center">Status</td><!--- WGG 0 --->
+        <td width="120" align="center">Status</td><!--- WGG 0 --->
+              <td width="60" align="center">Ignored</td><!--- WGG 3 --->
+              <td width="60" align="center">Resolved</td><!--- WGG 3 --->     
               <td width="50" align="center">Issue Type</td><!--- WGG 1 --->
-              <td width="60" align="center">Reason</td><!--- WGG 2 --->      
-              <td width="60" align="center">Ignored</td><!--- WGG 3 --->      
+              <td width="60" align="center">Reason</td><!--- WGG 2 --->       
               <td width="60" align="center">Date Opened</td><!--- WGG 4 --->
-              <td width="60" align="center">Date Closed</td><!--- WGG 5 --->
+              <td width="60" align="center">Date Resolved</td><!--- WGG 5 --->
               <td width="30" align="center">Date Ignored</td><!--- WGG 6 --->
-              <td width="60" align="center">Rep ID</td><!--- WGG 7 --->
-              <td width="60" align="center">Rep Name</td><!--- WGG 8 --->
-              <td width="60" align="center">Contract ID</td><!--- WGG 9 --->
-              <td width="60" align="center">Contract Name</td><!--- WGG 10 --->
+              <td width="60" align="center">Rep ID<br>Rep Name</td><!--- WGG 7 --->
+              <td width="60" align="center">Contract ID<br>Contract Name</td><!--- WGG 10 --->
               <td width="60" align="center">Member ID</td><!--- WGG 11 --->
+        <td width="60" align="center">View Member</td><!--- WGG 11 --->
           </tr>
           </thead>
           <cfset toggle = 1>
           <cfoutput query = "q_data_issues">
           <cfif toggle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset toggle = toggle*-1>
           <tr class="list_even_odd">
-              <td width="160" align="center" ><!--- WGG 0 --->
+              <td width="120" align="center" ><!--- WGG 0 --->
                   <select name="status_box" id="status_box">
                   <option value="0_#pk_TAG_data_issues#" <cfif k_TAG_issue_status eq '0'>Selected="selected"</cfif>>Not Reviewed</option>
                   <option value="1_#pk_TAG_data_issues#" <cfif k_TAG_issue_status eq '1'>Selected="selected"</cfif>>Reviewed, Awaiting Calc</option>    
               </td>
-        <td width="50" align="center">#issue_type_name#</td><!--- WGG 1 --->
-              <td width="60" align="center">#issue_reason_name#</td><!--- WGG 2 --->
               <td width="60" align="center" ><!--- WGG 3 --->
                   <select name="is_ignored_box" id="is_ignored_box">
                   <option value="0_#pk_TAG_data_issues#" <cfif is_ignored eq '0'>Selected="selected"</cfif>>Not Ignored</option>
                   <option value="1_#pk_TAG_data_issues#" <cfif is_ignored eq '1'>Selected="selected"</cfif>>Ignored</option>    
               </td>
-              <td width="60" align="center">#date_opened#</td><!--- WGG 4 --->
+              <td width="60" align="center">#is_resolved_word#</td><!--- WGG 2 --->
+        <td width="50" align="center">#issue_type_name#</td><!--- WGG 1 --->
+              <td width="60" align="center">#issue_reason_name#</td><!--- WGG 2 --->
+              <td width="60" align="center">#dateformat(date_opened,"medium")#</td><!--- WGG 4 --->
               <td width="60" align="center">#date_closed#</td><!--- WGG 5 --->
               <td width="30" align="center">#date_ignored#</td><!--- WGG 6 --->
-              <td width="60" align="center">#broker_id#</td><!--- WGG 7 --->
-              <td width="60" align="center">#broker_name#</td><!--- WGG 8 --->             
-              <td width="60" align="center">#k_brk_entity_contract#</td><!--- WGG 9 --->
-              <td width="60" align="center">#name#</td><!--- WGG 10 --->
+              <td width="60" align="center">#broker_id#<br>#broker_name#</td><!--- WGG 8 --->              
+              <td width="60" align="center">#k_brk_entity_contract#<br>#name#</td><!--- WGG 10 --->
               <td width="60" align="center">#member_id#</td><!--- WGG 11 --->
+        <td onclick="openMemberTab(#PK_mem_member_master#,'#jsStringFormat("#first_name# #last_name# - #hicnbr# -#member_id#")#');" class="list_col_data_#even_odd# editbutton">View</td>
           </tr>
           </cfoutput>      
       </table>
