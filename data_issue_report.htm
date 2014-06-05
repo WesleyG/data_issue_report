@@ -129,43 +129,43 @@ ticket_to
       <table id="cpy" class="list_table scrolling" scroll_height="1500" width="1450">
           <thead>
           <tr class="list_col_hdr">
-        <td width="120" align="center">Status</td><!--- WGG 0 --->
-              <td width="60" align="center">Ignored</td><!--- WGG 3 --->
-              <td width="60" align="center">Resolved</td><!--- WGG 3 --->     
-              <td width="50" align="center">Issue Type</td><!--- WGG 1 --->
-              <td width="60" align="center">Reason</td><!--- WGG 2 --->       
-              <td width="60" align="center">Date Opened</td><!--- WGG 4 --->
-              <td width="60" align="center">Date Resolved</td><!--- WGG 5 --->
-              <td width="30" align="center">Date Ignored</td><!--- WGG 6 --->
-              <td width="60" align="center">Rep ID<br>Rep Name</td><!--- WGG 7 --->
-              <td width="60" align="center">Contract ID<br>Contract Name</td><!--- WGG 10 --->
-              <td width="60" align="center">Member ID</td><!--- WGG 11 --->
+        <td align="center">Status</td><!--- WGG 0 --->
+              <td align="center">Ignored</td><!--- WGG 3 --->
+              <td align="center">Resolved</td><!--- WGG 3 --->      
+              <td align="center">Issue Type</td><!--- WGG 1 --->
+              <td align="center">Reason</td><!--- WGG 2 --->      
+              <td align="center">Date Opened</td><!--- WGG 4 --->
+              <td align="center">Date Resolved</td><!--- WGG 5 --->
+              <td align="center">Date Ignored</td><!--- WGG 6 --->
+              <td align="center">Rep ID<br>Rep Name</td><!--- WGG 7 --->
+              <td align="center">Contract ID<br>Contract Name</td><!--- WGG 10 --->
+              <td align="center">Member ID</td><!--- WGG 11 --->
           </tr>
           </thead>
           <cfset toggle = 1>
           <cfoutput query = "q_data_issues">
           <cfif toggle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset toggle = toggle*-1>
           <tr class="list_even_odd">
-              <td width="120" align="center" ><!--- WGG 0 --->
+              <td align="center" ><!--- WGG 0 --->
                   <select name="status_box" id="status_box">
                   <option value="0_#pk_TAG_data_issues#" <cfif k_TAG_issue_status eq '0'>Selected="selected"</cfif>>Not Reviewed</option>
                   <option value="1_#pk_TAG_data_issues#" <cfif k_TAG_issue_status eq '1'>Selected="selected"</cfif>>Reviewed, Awaiting Calc</option>    
               </td>
-              <td width="60" align="center" ><!--- WGG 3 --->
+              <td align="center" ><!--- WGG 3 --->
                   <select name="is_ignored_box" id="is_ignored_box">
                   <option value="0_#pk_TAG_data_issues#" <cfif is_ignored eq '0'>Selected="selected"</cfif>>Not Ignored</option>
                   <option value="1_#pk_TAG_data_issues#" <cfif is_ignored eq '1'>Selected="selected"</cfif>>Ignored</option>    
               </td>
-              <td width="60" align="center">#is_resolved_word#</td><!--- WGG 2 --->
-        <td width="50" align="center">#issue_type_name#</td><!--- WGG 1 --->
-              <td width="60" align="center">#issue_reason_name#</td><!--- WGG 2 --->
-              <td width="60" align="center">#dateformat(date_opened,"medium")#</td><!--- WGG 4 --->
-              <td width="60" align="center">#date_closed#</td><!--- WGG 5 --->
-              <td width="30" align="center">#date_ignored#</td><!--- WGG 6 --->
-              <td width="60" align="center"><a href="../call_center_sales/list_brokers.htm?brkid=#k_brk_broker#">#broker_id#</a><br>#broker_name#</td><!--- WGG 8 ---> 
+              <td align="center">#is_resolved_word#</td><!--- WGG 2 --->
+        <td align="center">#issue_type_name#</td><!--- WGG 1 --->
+              <td align="center">#issue_reason_name#</td><!--- WGG 2 --->
+              <td align="center">#dateformat(date_opened,"medium")#</td><!--- WGG 4 --->
+              <td align="center">#date_closed#</td><!--- WGG 5 --->
+              <td align="center">#date_ignored#</td><!--- WGG 6 --->
+              <td align="center"><a href="../call_center_sales/list_brokers.htm?brkid=#k_brk_broker#">#broker_id#</a><br>#broker_name#</td><!--- WGG 8 ---> 
                      
-              <td width="60" align="center">#k_brk_entity_contract#<br>#name#</td><!--- WGG 10 --->
-              <td width="60" align="center"><a href="../members/list_member.htm?memid=#pk_mem_member_master#">#member_id#</a></td><!--- WGG 11 --->
+              <td align="center">#k_brk_entity_contract#<br>#name#</td><!--- WGG 10 --->
+              <td align="center"><a href="../members/list_member.htm?memid=#pk_mem_member_master#">#member_id#</a></td><!--- WGG 11 --->
         <!--- https://molina.sb.evolvespm.com/members/list_member.htm?memid=1310773 --->
       
           </tr>
