@@ -122,6 +122,7 @@ function IgnoreStatus(x,y) {
         ,b.broker_id
         ,b.name AS broker_name
         ,c.name
+    ,issue.k_tag_issue_status_id
     FROM dbo.TAG_data_issues issue
       LEFT JOIN TAG_issue_type itype
           on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
@@ -137,7 +138,7 @@ function IgnoreStatus(x,y) {
       on issue.k_tag_issue_status = s.pk_tag_issue_status
   WHERE 1=1
     <cfif isdefined('form.form_ticket_status')>
-      AND k_tag_issue_status IN (<cfqueryparam value="#form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
+      AND k_tag_issue_status_id IN (<cfqueryparam value="#form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif> 
   ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
     
@@ -163,7 +164,7 @@ function IgnoreStatus(x,y) {
         
         <td align="center"><cfselect query="q_sel_status" 
                   id="form_ticket_status"
-                  value="pk_tag_issue_status" 
+                  value="issue_status_id" 
                   display="issue_status_name" 
                   name="form_ticket_status" 
                   selected="#form_ticket_status#" 
@@ -201,8 +202,8 @@ function IgnoreStatus(x,y) {
           <tr class="list_even_odd">
               <td align="center" ><!--- WGG 0 --->
                   <select name="status_box" id="status_box" onChange="SaveStatus(this.value,#pk_TAG_data_issues#)">
-                  <option value="0" <cfif k_TAG_issue_status eq '0'>Selected="selected"</cfif>>Not Reviewed</option>
-                  <option value="1" <cfif k_TAG_issue_status eq '1'>Selected="selected"</cfif>>Awaiting Calc</option>    
+                  <option value="0" <cfif k_tag_issue_status_id eq '0'>Selected="selected"</cfif>>Not Reviewed</option>
+                  <option value="1" <cfif k_tag_issue_status_id eq '1'>Selected="selected"</cfif>>Awaiting Calc</option>    
               </td>
               <td align="center" ><!--- WGG 3 --->
                   <select name="is_ignored_box" id="is_ignored_box" onChange="IgnoreStatus(this.value,#pk_TAG_data_issues#)">
