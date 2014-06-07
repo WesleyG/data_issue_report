@@ -18,21 +18,39 @@
 <cfset default_variables = "
 member_id
 k_data_source
-k_ticket_status
-date_from
-date_to
-pri_from
-pri_to
-comp_from
-comp_to
-ticket_from
-ticket_to
+form_ticket_status
 ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
 
+<!--- WGG 6/6/2014 AJAX!! --->
+<script>
+function SaveStatus(x,y) {
+  //alert(x+' '+y);
+     $.ajax({
+            type: "POST",
+            url: "data_issue_status.htm",
+            data: { id:y , sID: x},
+            success: function(){
+          //alert('hi'); 
+        }
+        })
+}
 
-<!--- WGG 5/30/2014 update the status of the issue --->
+function IgnoreStatus(x,y) {
+  //alert(x+' '+y);
+     $.ajax({
+            type: "POST",
+            url: "data_issue_ignore.htm",
+            data: { id:y , sID: x},
+            success: function(){
+          //alert('hi'); 
+        }
+        })
+}
+</script>
+
+<!--- WGG 5/30/2014 update the status of the issue 
 <cfif isdefined('form.status_box')>
     <cfloop list="#form.status_box#" index="name">
      <cfset status = listFirst(name, "_")>
@@ -49,8 +67,9 @@ ticket_to
     
     </cfloop>
 </cfif>
+--->
 
-<!--- WGG 6/1/2014 update if the issue is ignored --->
+<!--- WGG 6/1/2014 update if the issue is ignored 
 <cfif isdefined('form.is_ignored_box')>
     <cfloop list="#form.is_ignored_box#" index="name">
      <cfset ignore = listFirst(name, "_")>
@@ -66,6 +85,7 @@ ticket_to
     
     </cfloop>
 </cfif>
+--->
 
 <!--- WGG 6/1/2014 Query to populate page --->
 <cfquery name="q_data_issues" datasource="#application.sys_ds#">
@@ -115,12 +135,46 @@ ticket_to
           on issue.k_brk_entity_contract = c.pk_brk_entity_contract
     LEFT JOIN tag_issue_status s
       on issue.k_tag_issue_status = s.pk_tag_issue_status
+  WHERE 1=1
+    <cfif isdefined('form.form_ticket_status')>
+      AND k_tag_issue_status IN (<cfqueryparam value="#form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
+    </cfif> 
   ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
     
 </cfquery>
 
+<cfquery name="q_sel_status" datasource="#application.sys_ds#">
+  SELECT *
+  FROM tag_issue_status
+</cfquery>
+
 <!--- WGG 6/1/2014 Display issues on page --->
-<form method="POST" action="data_issue_report.htm" name="test">    
+<cfform method="POST" action="data_issue_report.htm" name="test">    
+    <table id="cpy" class="list_table scrolling" scroll_height="700" width="1400">
+  
+      <tr class="list_col_hdr">
+        
+        <td align="center">Status</td>
+        <td align="center">Type</td>
+        <td rowspan="2" width="150" align="center"><input class="form_submit_button" type="submit" value="Search" name="Submit"></td>
+      </tr>
+
+      <tr class="list_even_odd">
+        
+        
+        <td align="center"><cfselect query="q_sel_status" 
+                  id="form_ticket_status"
+                  value="pk_tag_issue_status" 
+                  display="issue_status_name" 
+                  name="form_ticket_status" 
+                  selected="#form_ticket_status#" 
+                  multiple="yes" 
+                  size="3"
+                  style="width:150px;"></cfselect>
+          <button type="button" id="StatusSub" onclick="Status_Submitted()">Clear</button>  
+        </td>
+      </tr>
+    </table><br>
     
   <div style="border-style:solid; border-width: 1px; border-radius:15px; width:1500;
               margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
@@ -147,14 +201,14 @@ ticket_to
           <cfif toggle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset toggle = toggle*-1>
           <tr class="list_even_odd">
               <td align="center" ><!--- WGG 0 --->
-                  <select name="status_box" id="status_box">
-                  <option value="0_#pk_TAG_data_issues#" <cfif k_TAG_issue_status eq '0'>Selected="selected"</cfif>>Not Reviewed</option>
-                  <option value="1_#pk_TAG_data_issues#" <cfif k_TAG_issue_status eq '1'>Selected="selected"</cfif>>Reviewed</option>    
+                  <select name="status_box" id="status_box" onChange="SaveStatus(this.value,#pk_TAG_data_issues#)">
+                  <option value="0" <cfif k_TAG_issue_status eq '0'>Selected="selected"</cfif>>Not Reviewed</option>
+                  <option value="1" <cfif k_TAG_issue_status eq '1'>Selected="selected"</cfif>>Awaiting Calc</option>    
               </td>
               <td align="center" ><!--- WGG 3 --->
-                  <select name="is_ignored_box" id="is_ignored_box">
-                  <option value="0_#pk_TAG_data_issues#" <cfif is_ignored eq '0'>Selected="selected"</cfif>>Not Ignored</option>
-                  <option value="1_#pk_TAG_data_issues#" <cfif is_ignored eq '1'>Selected="selected"</cfif>>Ignored</option>    
+                  <select name="is_ignored_box" id="is_ignored_box" onChange="IgnoreStatus(this.value,#pk_TAG_data_issues#)">
+                  <option value="1" <cfif is_ignored eq '1'>Selected="selected"</cfif>>Not Ignored</option>
+                  <option value="2" <cfif is_ignored eq '2'>Selected="selected"</cfif>>Ignored</option>    
               </td>
               <td align="center">#is_resolved_word#</td><!--- WGG 2 --->
         <td align="center">#issue_type_name#</td><!--- WGG 1 --->
@@ -176,7 +230,7 @@ ticket_to
       </div>
   </div>
   <br>
-</form>
+</cfform>
 
 <cfset ajaxonload("doScrollTables")>
 <cfset ajaxonload("makeSortable")>

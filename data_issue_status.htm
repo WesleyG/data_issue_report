@@ -1,0 +1,5 @@
+<cfquery name="q_update_status" datasource="#application.sys_ds#">
+	UPDATE TAG_data_issues
+	SET TAG_data_issues.k_TAG_issue_status = #sID#
+	WHERE TAG_data_issues.pk_TAG_data_issues = #ID#
+</cfquery>
