@@ -1,13 +1,16 @@
 <cfinclude template = "../cf_includes/cf_PRE_template_include.htm">
 <cfparam name = "display_mode" default = "">
 
-<!--- get saved search if it's there and we're in the right display mode --->
+<!--- WGG 6/10/2014 displays results if url is passed in - not from a form
+
 <cfif display_mode NEQ "record_info" and isDefined('url.payeesrchfrmid') and isnumeric(payeesrchfrmid)>
 	<cfset frmdata = createObject('component','#application.cfcPrefix#cf_in_tmp_data_handler').init(sys_ds).retrieveData(payeesrchfrmid)/>
 	<cfset dummy = structAppend(form,frmdata,true)/>
 	<!--- we won't use the id that may be passed in url --->
 	<cfset payeeid = "">
 </cfif>
+
+WGG --->
 
 <!--- add payeeid to qs --->
 <cfparam name="payeesrchfrmid" default="">
@@ -62,6 +65,14 @@
 	
 	ORDER BY brk_payee.name, brk_payee.PK_brk_payee
 </cfquery>
+
+<CFQUERY NAME='sel_employee_group' DATASOURCE='#sys_ds#' maxrows="100">
+	SELECT	eg.*, egj.K_brk_broker
+		FROM	EMGR_Employer_group eg
+				left join EMGR_Employer_group__BRK_broker__JOIN egj 
+					on eg.pk_EMGR_Employer_group = egj.k_EMGR_Employer_group
+</cfquery>
+
 
 <cfset default_query_name = "sel_brk_payee">
 <cfset default_variables = "
@@ -210,6 +221,80 @@ Search for an employer group, then select a record to edit it.
 	</cfoutput>
 	</table>
 <!-- END output list -->
+
+<br>
+<br>
+<!--- WGG 6/10/2014 show employer group table --->
+
+	<table id="<cfoutput>#list_table_cssid#</cfoutput>" class="list_table">
+		<tr>
+			<cfset qs_tmp = set_qs(qs, "payeeid=0")>
+			<cfoutput>
+			<td id="hdr_insert" onclick="gourl('#form_file#?payeeid=#payeeid#&payeesrchfrmid=#payeesrchfrmid#');" class="list_col_hdr tabbutton">New payee</td>
+			</cfoutput>
+			
+			<td class="list_col_hdr">Type</td>
+			
+			<td id="hdr_name" class="list_col_hdr">Name</td>
+			
+			<td class="list_col_hdr">Address1</td>
+			
+			<td class="list_col_hdr">Address2</td>
+			
+			<td class="list_col_hdr">City</td>
+			
+			<td class="list_col_hdr">State</td>
+			
+			<td class="list_col_hdr">Zip</td>
+			
+			<td class="list_col_hdr">Tax Id</td>
+			
+			<td class="list_col_hdr">Ref</td>
+			
+		</tr>
+	<cfif not sel_brk_payee.recordcount>
+		<tr><td colspan="10" class="list_col_hdr">No records</td></tr>
+	</cfif>
+	<cfset togle = 1>
+	<!--- get qs ready here it's not inside the output loop --->
+	<cfset qs_tmp = set_qs(qs, "payeeid", "remove")>
+	<cfoutput query = "sel_brk_payee" group="PK_brk_payee">
+		<cfif togle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset togle = togle*-1>
+		<tr>
+			<cfif val(K_brk_payee__self) and K_brk_payee__self EQ PK_brk_payee>
+				<td onclick="gourl('../call_center_sales/list_brokers.htm?seltab=payees&brkid=#pk_brk_broker#');" class="list_col_data_#even_odd# editbutton">Edit Rep<br>#pk_brk_broker#</td>
+			<cfelse>
+				<td onclick="gourl('#form_file#?payeeid=#PK_brk_payee#&payeesrchfrmid=#payeesrchfrmid#');" class="list_col_data_#even_odd# editbutton">Edit Payee</td>
+			</cfif>
+			
+			<td class="list_col_data_#even_odd#">
+			<cfif val(K_brk_payee__self) and K_brk_payee__self EQ PK_brk_payee>
+				Self Payee
+			<cfelse>
+				Special Payee
+			</cfif>
+			</td>
+			
+			<td class="list_col_data_#even_odd#">#name#</td>
+			
+			<td class="list_col_data_#even_odd#">#address1#</td>
+			
+			<td class="list_col_data_#even_odd#">#address2#</td>
+			
+			<td class="list_col_data_#even_odd#">#city#</td>
+			
+			<td class="list_col_data_#even_odd#">#state#</td>
+			
+			<td class="list_col_data_#even_odd#">#zip#</td>
+			
+			<td class="list_col_data_#even_odd#">#tax_id#</td>
+			
+			<td class="list_col_data_#even_odd#">#ref#</td>
+
+		</tr>
+	</cfoutput>
+	
+<!--- WGG 6/10/2014 end of showing employer group table --->
 
 <!--- show record info and navigation --->
 <cfif display_mode EQ "record_info">
