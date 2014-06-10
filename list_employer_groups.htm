@@ -1,0 +1,241 @@
+<cfinclude template = "../cf_includes/cf_PRE_template_include.htm">
+<cfparam name = "display_mode" default = "">
+
+<!--- get saved search if it's there and we're in the right display mode --->
+<cfif display_mode NEQ "record_info" and isDefined('url.payeesrchfrmid') and isnumeric(payeesrchfrmid)>
+	<cfset frmdata = createObject('component','#application.cfcPrefix#cf_in_tmp_data_handler').init(sys_ds).retrieveData(payeesrchfrmid)/>
+	<cfset dummy = structAppend(form,frmdata,true)/>
+	<!--- we won't use the id that may be passed in url --->
+	<cfset payeeid = "">
+</cfif>
+
+<!--- add payeeid to qs --->
+<cfparam name="payeesrchfrmid" default="">
+<cfparam name="payeeid" default="">
+<cfset qs = set_qs(qs, "payeeid=#payeeid#")>
+
+<!--- set form and list files --->
+<cfset form_file="frm_edit_payee_sa.htm">
+<cfset list_file="list_employer_group.htm">
+
+<cfset empty_query = "YES">
+<cfif isdefined("k_BRK_agency")><cfset ag_id = k_BRK_agency></cfif>
+
+
+<cfsavecontent variable="srch_criteria">
+	brk_payee.cid = @cid
+	<cfif isdefined('name') and name NEQ "">
+		and (brk_payee.name LIKE  @name)
+		<cfset empty_query = "NO">
+	</cfif>
+	<cfif isdefined('payee_id') and payee_id NEQ "">
+		and (brk_payee.tax_id LIKE @id or
+		brk_payee.ref LIKE  @id)
+		<cfset empty_query = "NO">
+	</cfif>
+</cfsavecontent>
+
+<cfparam name = "name" default = "">
+<cfparam name = "payee_id" default = "">
+<CFQUERY NAME='sel_brk_payee' DATASOURCE='#sys_ds#' maxrows="100">
+	declare @name varchar(50),@id varchar(50),@cid int
+	set @name = <cfqueryparam value="%#name#%" cfsqltype="cf_sql_varchar"/>
+	set @id = <cfqueryparam value="%#payee_id#%" cfsqltype="cf_sql_varchar"/>
+	set @cid = <cfqueryparam value="#val(pk_clnt_client)#" cfsqltype="cf_sql_integer"/>
+	SELECT	brk_payee.*, brk.K_brk_payee__self, brk.PK_brk_broker
+	FROM	brk_payee
+			left join brk_broker brk on brk.K_brk_payee__self = PK_brk_payee
+	WHERE(	
+	<cfif payeeid NEQ "">
+		brk_payee.cid = @cid
+		and brk_payee.PK_brk_payee = <cfqueryparam value="#val(payeeid)#" cfsqltype="cf_sql_integer"/>
+		<cfset empty_query = "NO">
+	<cfelse>
+		(#srch_criteria#)
+		or pk_brk_payee in (SELECT	k_brk_payee from brk_payee_history
+							where #replaceNoCase(srch_criteria,"brk_payee","brk_payee_history","all")#)
+	</cfif>
+	)
+	<cfif empty_query>
+		and 1=2
+	</cfif>
+	
+	ORDER BY brk_payee.name, brk_payee.PK_brk_payee
+</cfquery>
+
+<cfset default_query_name = "sel_brk_payee">
+<cfset default_variables = "
+name
+payee_id">
+<cfinclude template="../cf_includes/set_defaults.htm">
+
+<!--- save search for return --->
+<cfif not empty_query and isdefined('form.search') and display_mode NEQ "record_info">
+	<cfset payeesrchfrmid = createObject('component','#application.cfcPrefix#cf_in_tmp_data_handler').init(sys_ds).saveData(form)/>
+	<cfset qs = set_qs(qs, "payeesrchfrmid=#payeesrchfrmid#")>
+</cfif>
+
+<!--- page title --->
+<cfset page_title="Employer Groups">
+<cfsavecontent variable="page_description">
+Search for an employer group, then select a record to edit it.
+</cfsavecontent>
+
+<cfif val(payeeid)>
+	<!--- 
+	if display_mode = "record_info" and hdr_mode = inner_page (includeded within a form)
+	record_info_description will show at the top
+	in place of the page_title and page_description
+	 --->
+	<cfset payee_name = sel_brk_payee.name>
+	<cfif sel_brk_payee.name EQ "">
+		<cfset payee_name = "#sel_brk_payee.last_name#, #sel_brk_payee.first_name#">
+	</cfif> 
+	 
+	<cfsavecontent variable="record_info_description">
+	<cfoutput><strong>Editing: #payee_name#.</strong> Select a tab to edit its data.</cfoutput>
+	</cfsavecontent>
+
+<cfelseif not val(payeeid)>
+
+	<cfsavecontent variable="record_info_description">
+	<cfoutput><strong>Inserting new payee</strong></cfoutput>
+	</cfsavecontent>
+</cfif>
+
+<!--- page header --->
+<cfinclude template = "../templates/header.htm">
+<cfinclude template = "../templates/cf_in_prompts.htm">
+
+<cfset process_name = "contract_setup">
+<cfset process_step = "1">
+<cfinclude template = "../templates/cf_in_process_steps.htm">
+
+<cfinclude template = "../templates/cf_in_page_info.htm">
+
+<cfif display_mode NEQ "record_info">
+	<form name="search" action="list_employer_group.htm" method="POST">
+		<table class="form_table">
+			<tr>
+				<td nowrap align="center" class="form_field_name">
+					Payee Name
+				</td>
+				<td nowrap align="center" class="form_field_name">
+					Payee Ref or Tax ID
+				</td>
+				<td nowrap align="center" class="form_field_name" align="right">
+				</td>
+			</tr>
+			<tr>
+				<td nowrap align="center" class="form_field_entry">
+					<input type="text" name="name" value="<cfoutput>#name#</cfoutput>">
+				</td>
+				<td nowrap align="center" class="form_field_entry">
+					<input type="text" name="payee_id" value="<cfoutput>#payee_id#</cfoutput>">
+				</td>
+				<td nowrap align="center" class="form_field_entry" align="right"><input type="submit" name="Search" value="Search"></td>
+			</tr>
+		</table>
+	</form>
+</cfif>
+
+	<cfset list_table_cssid = "payee_list">
+	<!-- output list -->
+	<table id="<cfoutput>#list_table_cssid#</cfoutput>" class="list_table">
+		<tr>
+			<cfset qs_tmp = set_qs(qs, "payeeid=0")>
+			<cfoutput>
+			<td id="hdr_insert" onclick="gourl('#form_file#?payeeid=#payeeid#&payeesrchfrmid=#payeesrchfrmid#');" class="list_col_hdr tabbutton">New payee</td>
+			</cfoutput>
+			
+			<td class="list_col_hdr">Type</td>
+			
+			<td id="hdr_name" class="list_col_hdr">Name</td>
+			
+			<td class="list_col_hdr">Address1</td>
+			
+			<td class="list_col_hdr">Address2</td>
+			
+			<td class="list_col_hdr">City</td>
+			
+			<td class="list_col_hdr">State</td>
+			
+			<td class="list_col_hdr">Zip</td>
+			
+			<td class="list_col_hdr">Tax Id</td>
+			
+			<td class="list_col_hdr">Ref</td>
+			
+		</tr>
+	<cfif not sel_brk_payee.recordcount>
+		<tr><td colspan="10" class="list_col_hdr">No records</td></tr>
+	</cfif>
+	<cfset togle = 1>
+	<!--- get qs ready here it's not inside the output loop --->
+	<cfset qs_tmp = set_qs(qs, "payeeid", "remove")>
+	<cfoutput query = "sel_brk_payee" group="PK_brk_payee">
+		<cfif togle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset togle = togle*-1>
+		<tr>
+			<cfif val(K_brk_payee__self) and K_brk_payee__self EQ PK_brk_payee>
+				<td onclick="gourl('../call_center_sales/list_brokers.htm?seltab=payees&brkid=#pk_brk_broker#');" class="list_col_data_#even_odd# editbutton">Edit Rep<br>#pk_brk_broker#</td>
+			<cfelse>
+				<td onclick="gourl('#form_file#?payeeid=#PK_brk_payee#&payeesrchfrmid=#payeesrchfrmid#');" class="list_col_data_#even_odd# editbutton">Edit Payee</td>
+			</cfif>
+			
+			<td class="list_col_data_#even_odd#">
+			<cfif val(K_brk_payee__self) and K_brk_payee__self EQ PK_brk_payee>
+				Self Payee
+			<cfelse>
+				Special Payee
+			</cfif>
+			</td>
+			
+			<td class="list_col_data_#even_odd#">#name#</td>
+			
+			<td class="list_col_data_#even_odd#">#address1#</td>
+			
+			<td class="list_col_data_#even_odd#">#address2#</td>
+			
+			<td class="list_col_data_#even_odd#">#city#</td>
+			
+			<td class="list_col_data_#even_odd#">#state#</td>
+			
+			<td class="list_col_data_#even_odd#">#zip#</td>
+			
+			<td class="list_col_data_#even_odd#">#tax_id#</td>
+			
+			<td class="list_col_data_#even_odd#">#ref#</td>
+
+		</tr>
+	</cfoutput>
+	</table>
+<!-- END output list -->
+
+<!--- show record info and navigation --->
+<cfif display_mode EQ "record_info">
+
+	<!--- set qs for delete --->
+	<cfset qs_del_tmp = set_qs(qs, "delete=yes")>
+
+	<!--- edit record info javascript --->
+	<script src="../js_includes/edit_table.js" type="text/javascript"></script>
+	<script language="JavaScript1.2">
+	<cfoutput>
+		<cfset qs = set_qs(qs, "delete", "remove")>
+		//changes table into edit record tabs. takes table id, delete url, back url returns table elm
+		var elmtable = list_table_edit('#list_table_cssid#', '#form_file#?#qs_del_tmp#&delete=yes', '#list_file#?payeesrchfrmid=#payeesrchfrmid#');
+
+		//if there's a data row, add more buttons
+		if(elmtable.rows[1]){
+			//other buttons. takes table object, colid, button name, url
+			set_table_tab(elmtable, 'hdr_name', 'Payee Info', '#form_file#?payeeid=#payeeid#&payeesrchfrmid=#payeesrchfrmid#');
+
+
+		}
+	</cfoutput>
+	</script>
+</cfif>
+
+<!--- page footer --->
+<cfinclude template = "../templates/footer.htm">
+<cfinclude template = "../cf_includes/cf_POST_template_include.htm">
