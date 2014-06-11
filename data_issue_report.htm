@@ -19,6 +19,7 @@
 member_id
 k_data_source
 form_ticket_status
+form_ticket_ignore
 ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -140,6 +141,9 @@ function IgnoreStatus(x,y) {
     <cfif isdefined('form.form_ticket_status')>
       AND k_tag_issue_status_id IN (<cfqueryparam value="#form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif> 
+    <cfif isdefined('form.form_ticket_status')>
+      AND k_tag_issue_status_id IN (<cfqueryparam value="#form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
+    </cfif> 
   ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
     
 </cfquery>
@@ -147,6 +151,23 @@ function IgnoreStatus(x,y) {
 <cfquery name="q_sel_status" datasource="#application.sys_ds#">
   SELECT *
   FROM tag_issue_status
+</cfquery>
+
+
+<cfquery name="q_sel_ignored" datasource="#application.sys_ds#">
+  SELECT 
+    ignored =  --ignored is the alias
+      CASE is_ignored
+        WHEN 1
+          THEN 'Ignored'
+        WHEN 0
+          THEN 'Not Ignored'
+        ELSE 'Unknown'
+
+        END
+    ,is_ignored
+  FROM tag_data_issues
+  GROUP BY is_ignored
 </cfquery>
 
 <!--- WGG 6/1/2014 Display issues on page --->
@@ -160,6 +181,8 @@ function IgnoreStatus(x,y) {
       <tr class="list_col_hdr">
         
         <td align="center">Status</td>
+        <td align="center">Ignored</td>
+        
         <td rowspan="2" width="150" align="center"><input class="form_submit_button" type="submit" value="Search" name="Submit"></td>
       </tr>
 
@@ -170,6 +193,18 @@ function IgnoreStatus(x,y) {
                   id="form_ticket_status"
                   value="issue_status_id" 
                   display="issue_status_name" 
+                  name="form_ticket_status" 
+                  selected="#form_ticket_status#" 
+                  multiple="yes" 
+                  size="3"
+                  style="width:150px;"></cfselect>
+          <button type="button" id="StatusSub" onclick="Status_Submitted()">Clear</button>  
+        </td>
+        
+        <td align="center"><cfselect query="q_sel_ignored" 
+                  id="form_ticket_ignore"
+                  value="is_ignored" 
+                  display="ignored" 
                   name="form_ticket_status" 
                   selected="#form_ticket_status#" 
                   multiple="yes" 
