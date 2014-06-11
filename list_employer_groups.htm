@@ -40,6 +40,8 @@ WGG --->
 
 <cfparam name = "name" default = "">
 <cfparam name = "payee_id" default = "">
+<cfparam name = "employer_group_id" default = "">
+
 <CFQUERY NAME='sel_brk_payee' DATASOURCE='#sys_ds#' maxrows="100">
 	declare @name varchar(50),@id varchar(50),@cid int
 	set @name = <cfqueryparam value="%#name#%" cfsqltype="cf_sql_varchar"/>
@@ -67,7 +69,27 @@ WGG --->
 </cfquery>
 
 <CFQUERY NAME='sel_employee_group' DATASOURCE='#sys_ds#' maxrows="100">
-	SELECT	eg.*, egj.K_brk_broker
+	declare @eg_id varchar(50)
+	set @eg_id = <cfqueryparam value="%#payee_id#%" cfsqltype="cf_sql_varchar"/>
+	SELECT
+		eg.pk_EMGR_Employer_group
+      	,eg.employer_group_id
+      	,eg.name as employer_group_name
+      	,eg.phone1
+      	,eg.phone2
+      	,eg.address1
+      	,eg.address2
+      	,eg.city
+      	,eg.state
+      	,eg.zip
+      	,eg.email
+      	,eg.time_stamp
+      	,eg.start_date
+      	,eg.end_date
+      	,eg.notes
+		,eg.cid
+     	,eg.deleted
+		,egj.K_brk_broker
 		FROM	EMGR_Employer_group eg
 				left join EMGR_Employer_group__BRK_broker__JOIN egj 
 					on eg.pk_EMGR_Employer_group = egj.k_EMGR_Employer_group
@@ -77,7 +99,8 @@ WGG --->
 <cfset default_query_name = "sel_brk_payee">
 <cfset default_variables = "
 name
-payee_id">
+payee_id
+employer_group_id">
 <cfinclude template="../cf_includes/set_defaults.htm">
 
 <!--- save search for return --->
@@ -134,6 +157,11 @@ Search for an employer group, then select a record to edit it.
 				<td nowrap align="center" class="form_field_name">
 					Payee Ref or Tax ID
 				</td>
+				
+				<td nowrap align="center" class="form_field_name">
+					Employer Group ID
+				</td>
+				
 				<td nowrap align="center" class="form_field_name" align="right">
 				</td>
 			</tr>
@@ -143,6 +171,11 @@ Search for an employer group, then select a record to edit it.
 				</td>
 				<td nowrap align="center" class="form_field_entry">
 					<input type="text" name="payee_id" value="<cfoutput>#payee_id#</cfoutput>">
+				</td>
+				
+				<!--- WGG 6/10/2014 add employer group iD search --->
+				<td nowrap align="center" class="form_field_entry">
+					<input type="text" name="employer_group_id" value="<cfoutput>#employer_group_id#</cfoutput>">
 				</td>
 				<td nowrap align="center" class="form_field_entry" align="right"><input type="submit" name="Search" value="Search"></td>
 			</tr>
@@ -224,18 +257,17 @@ Search for an employer group, then select a record to edit it.
 
 <br>
 <br>
+
+
+
 <!--- WGG 6/10/2014 show employer group table --->
 
 	<table id="<cfoutput>#list_table_cssid#</cfoutput>" class="list_table">
 		<tr>
-			<cfset qs_tmp = set_qs(qs, "payeeid=0")>
-			<cfoutput>
-			<td id="hdr_insert" onclick="gourl('#form_file#?payeeid=#payeeid#&payeesrchfrmid=#payeesrchfrmid#');" class="list_col_hdr tabbutton">New payee</td>
-			</cfoutput>
-			
-			<td class="list_col_hdr">Type</td>
-			
-			<td id="hdr_name" class="list_col_hdr">Name</td>
+
+			<td class="list_col_hdr">Employer Group ID</td>
+						
+			<td class="list_col_hdr">Employer Group Name</td>
 			
 			<td class="list_col_hdr">Address1</td>
 			
@@ -247,35 +279,15 @@ Search for an employer group, then select a record to edit it.
 			
 			<td class="list_col_hdr">Zip</td>
 			
-			<td class="list_col_hdr">Tax Id</td>
-			
-			<td class="list_col_hdr">Ref</td>
-			
 		</tr>
-	<cfif not sel_brk_payee.recordcount>
-		<tr><td colspan="10" class="list_col_hdr">No records</td></tr>
-	</cfif>
 	<cfset togle = 1>
-	<!--- get qs ready here it's not inside the output loop --->
-	<cfset qs_tmp = set_qs(qs, "payeeid", "remove")>
-	<cfoutput query = "sel_brk_payee" group="PK_brk_payee">
+
+	<cfoutput query = "sel_employee_group">
 		<cfif togle gt 0><cfset even_odd = "even"><cfelse><cfset even_odd = "odd"></cfif><cfset togle = togle*-1>
-		<tr>
-			<cfif val(K_brk_payee__self) and K_brk_payee__self EQ PK_brk_payee>
-				<td onclick="gourl('../call_center_sales/list_brokers.htm?seltab=payees&brkid=#pk_brk_broker#');" class="list_col_data_#even_odd# editbutton">Edit Rep<br>#pk_brk_broker#</td>
-			<cfelse>
-				<td onclick="gourl('#form_file#?payeeid=#PK_brk_payee#&payeesrchfrmid=#payeesrchfrmid#');" class="list_col_data_#even_odd# editbutton">Edit Payee</td>
-			</cfif>
+		<tr>		
+			<td class="list_col_data_#even_odd#">#employer_group_id#</td>
 			
-			<td class="list_col_data_#even_odd#">
-			<cfif val(K_brk_payee__self) and K_brk_payee__self EQ PK_brk_payee>
-				Self Payee
-			<cfelse>
-				Special Payee
-			</cfif>
-			</td>
-			
-			<td class="list_col_data_#even_odd#">#name#</td>
+			<td class="list_col_data_#even_odd#">#employer_group_name#</td>
 			
 			<td class="list_col_data_#even_odd#">#address1#</td>
 			
@@ -286,10 +298,6 @@ Search for an employer group, then select a record to edit it.
 			<td class="list_col_data_#even_odd#">#state#</td>
 			
 			<td class="list_col_data_#even_odd#">#zip#</td>
-			
-			<td class="list_col_data_#even_odd#">#tax_id#</td>
-			
-			<td class="list_col_data_#even_odd#">#ref#</td>
 
 		</tr>
 	</cfoutput>
