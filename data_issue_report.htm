@@ -150,7 +150,11 @@ function IgnoreStatus(x,y) {
 </cfquery>
 
 <!--- WGG 6/1/2014 Display issues on page --->
-<cfform method="POST" action="data_issue_report.htm" name="test">    
+<cfform method="POST" action="data_issue_report.htm" name="test">
+  <div style="border-style:solid; border-width: 1px; border-radius:15px; width:1500;
+            margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
+    <div align="center">
+    <span><b>Data Issue Search</b></span>    
     <table id="cpy" class="list_table scrolling" scroll_height="700" width="1400">
   
       <tr class="list_col_hdr">
@@ -174,7 +178,10 @@ function IgnoreStatus(x,y) {
           <button type="button" id="StatusSub" onclick="Status_Submitted()">Clear</button>  
         </td>
       </tr>
-    </table><br>
+    </table>
+      </div>
+  </div>
+    <br>
     
   <div style="border-style:solid; border-width: 1px; border-radius:15px; width:1500;
               margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
