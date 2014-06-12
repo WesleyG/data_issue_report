@@ -33,7 +33,11 @@ function Clear_Status() {
 
 function Clear_Ignored() {
   $("#form_ticket_ignore").val(-1);
-} 
+}
+
+function Clear_Name() {
+  $("#form_broker_name").val("");
+}   
   
 function SaveStatus(x,y) {
   //alert(x+' '+y);
@@ -225,8 +229,15 @@ function IgnoreStatus(x,y) {
             </button>
           </td>
           
-          <td align="center">
+          <td align="center" style="vertical-align:middle;">
             <cfoutput><input type="text" id="form_broker_name" name="form_broker_name" size="15" value="#form_broker_name#"></cfoutput>
+            <br>
+            <br>
+            <br>
+            <br>
+            <button type="button" id="StatusSub" onclick="Clear_Name()">
+              Clear
+            </button>
           </td>
         </tr>
       </table>
