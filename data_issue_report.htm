@@ -21,9 +21,21 @@
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
 
+<!--- WGG 6/12/2014 show only not-ignored rows on page load --->
 <cfif not isdefined('form.form_ticket_ignored')>
   <cfset form.form_ticket_ignored = 0>
 </cfif>
+
+
+<!--- WGG 6/12/2014 show only not-reviewed rows on page load --->
+<!---
+<cfif not isdefined('form.form_ticket_status')>
+  <cfset form.form_ticket_status = 0>
+</cfif>
+--->
+
+
+
 <!--- WGG 6/6/2014 AJAX!! --->
 <script>
   
@@ -146,8 +158,8 @@ function IgnoreStatus(x,y) {
       AND k_tag_issue_status_id IN (<cfqueryparam value="#form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif> 
 
-    <cfif isdefined('form.form_ticket_ignored') AND val('form.form_ticket_ignored')>
-      AND is_ignored IN (<cfqueryparam value="#form_ticket_ignored#" cfsqltype="cf_sql_integer" list="true"/>)
+    <cfif isdefined('form.form_ticket_ignored') AND len('form.form_ticket_ignored')>
+      AND is_ignored IN (<cfqueryparam value="#form.form_ticket_ignored#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif> 
 
     <cfif isdefined('form.form_broker_name')>
@@ -398,4 +410,4 @@ function IgnoreStatus(x,y) {
   <br>
 </cfform>
 <cfset ajaxonload("doScrollTables")>
-<cfset ajaxonload("makeSortable")>
+<!--- <cfset ajaxonload("makeSortable")> --->
