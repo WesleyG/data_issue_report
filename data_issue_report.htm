@@ -141,17 +141,20 @@ function IgnoreStatus(x,y) {
     LEFT JOIN tag_issue_status s
       on issue.k_tag_issue_status = s.pk_tag_issue_status
   WHERE 1=1
+
     <cfif isdefined('form.form_ticket_status')>
       AND k_tag_issue_status_id IN (<cfqueryparam value="#form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif> 
-    <cfif isdefined('form.form_ticket_ignored')>
+
+    <cfif isdefined('form.form_ticket_ignored') AND val('form.form_ticket_ignored')>
       AND is_ignored IN (<cfqueryparam value="#form_ticket_ignored#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif> 
+
     <cfif isdefined('form.form_broker_name')>
       AND b.name LIKE (<cfqueryparam value="%#form_broker_name#%" cfsqltype="cf_sql_varchar"/>)
     </cfif> 
   ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
-    
+
 </cfquery>
 <cfquery name="q_sel_status" datasource="#application.sys_ds#">
   SELECT *
