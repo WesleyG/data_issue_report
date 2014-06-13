@@ -18,6 +18,7 @@
   form_ticket_ignored
   form_broker_name
   form_mem_id
+  form_ticket_resolved
   ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -289,11 +290,11 @@ function IgnoreStatus(x,y) {
     
           <td align="center">
             <cfselect query="q_sel_resolved" 
-              id="form_ticket_ignore"
-              value="is_ignored" 
-              display="ignored" 
-              name="form_ticket_ignored" 
-              selected="#form_ticket_ignored#" 
+              id="form_ticket_resolved"
+              value="is_resolved" 
+              display="resolved" 
+              name="form_ticket_resolved" 
+              selected="#form_ticket_resolved#" 
               multiple="yes" 
               size="3"
               style="width:150px;">
