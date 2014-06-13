@@ -215,13 +215,17 @@ function IgnoreStatus(x,y) {
           Data Issue Search
         </b>
       </span>
-      <table id="cpy" class="list_table scrolling" scroll_height="700" width="90%">
+      <table id="cpy" class="list_table scrolling" scroll_height="700" width="100%">
         <tr class="list_col_hdr">
           <td align="center">
             Status
           </td>
           <td align="center">
             Ignored
+          </td>
+    
+          <td align="center">
+            Resolved
           </td>
           
           <td align="center">
@@ -252,6 +256,23 @@ function IgnoreStatus(x,y) {
               Clear
             </button>
           </td>
+    
+          <td align="center">
+            <cfselect query="q_sel_ignored" 
+              id="form_ticket_ignore"
+              value="is_ignored" 
+              display="ignored" 
+              name="form_ticket_ignored" 
+              selected="#form_ticket_ignored#" 
+              multiple="yes" 
+              size="3"
+              style="width:150px;">
+            </cfselect><br><br>
+            <button type="button" id="StatusSub" onclick="Clear_Ignored()">
+              Clear
+            </button>
+          </td>
+    
           <td align="center">
             <cfselect query="q_sel_ignored" 
               id="form_ticket_ignore"
@@ -278,7 +299,6 @@ function IgnoreStatus(x,y) {
             </button>
           </td>
     
-          <!--- WGG 6/13/2014 add member search --->
           <td align="center" style="vertical-align:middle;">
             <cfoutput><input type="text" id="form_mem_id" name="form_mem_id" size="15" value="#form_mem_id#"></cfoutput>
             <br>
@@ -295,7 +315,7 @@ function IgnoreStatus(x,y) {
     </div>
   </div>
   <br>
-  <div style="border-style:solid; border-width: 1px; border-radius:15px; width:1500;
+  <div style="border-style:solid; border-width: 1px; border-radius:15px; width:90%;
     margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
     <div align="center">
       <span>
@@ -303,7 +323,7 @@ function IgnoreStatus(x,y) {
           Data Issues
         </b>
       </span>
-      <table id="cpy" class="list_table scrolling" scroll_height="1500" width="1450">
+      <table id="cpy" class="list_table scrolling" scroll_height="1500" width=100%>
         <thead>
           <tr class="list_col_hdr">
             <td align="center">
