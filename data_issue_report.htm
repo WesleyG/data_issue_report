@@ -205,6 +205,20 @@ function IgnoreStatus(x,y) {
   FROM tag_data_issues
   GROUP BY is_ignored
 </cfquery>
+
+<cfquery name="q_sel_resolved" datasource="#application.sys_ds#">
+  SELECT 
+    resolved =  --resolved is the alias
+      CASE is_resolved
+        WHEN 1  THEN 'Resolved'
+        WHEN 0 THEN 'Not Resolved'
+        ELSE 'Unknown'
+
+        END
+    ,is_resolved
+  FROM tag_data_issues
+  GROUP BY is_resolved
+</cfquery>
 <!--- WGG 6/1/2014 Display issues on page --->
 <cfform method="POST" action="data_issue_report.htm" name="test">
   <div style="border-style:solid; border-width: 1px; border-radius:15px; width:60%;
@@ -274,7 +288,7 @@ function IgnoreStatus(x,y) {
           </td>
     
           <td align="center">
-            <cfselect query="q_sel_ignored" 
+            <cfselect query="q_sel_resolved" 
               id="form_ticket_ignore"
               value="is_ignored" 
               display="ignored" 
