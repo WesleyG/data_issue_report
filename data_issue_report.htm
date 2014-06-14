@@ -17,6 +17,7 @@
   form_ticket_status
   form_ticket_ignored
   form_broker_name
+  form_mem_id
   ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -24,6 +25,21 @@
 <!--- WGG 6/12/2014 show only not-ignored rows on page load --->
 <cfif not isdefined('form.form_ticket_ignored')>
   <cfset form.form_ticket_ignored = 0>
+</cfif>
+
+
+<cfif isdefined('pkid')>
+  
+  <cfquery name="sel_mem_id" datasource="#application.sys_ds#">
+    SELECT member_id
+    FROM mem_member_master
+    where pk_mem_member_master = <cfqueryparam value="#pkid#" cfsqltype="cf_sql_integer">
+  </cfquery>
+
+
+<cfset form_mem_id = #sel_mem_id.member_id#>
+<cfset form.form_mem_id = #sel_mem_id.member_id#>
+
 </cfif>
 
 
@@ -165,6 +181,10 @@ function IgnoreStatus(x,y) {
     <cfif isdefined('form.form_broker_name')>
       AND b.name LIKE (<cfqueryparam value="%#form_broker_name#%" cfsqltype="cf_sql_varchar"/>)
     </cfif> 
+  
+  <cfif isdefined('form.form_mem_id')>
+      AND m.member_id LIKE (<cfqueryparam value="%#form_mem_id#%" cfsqltype="cf_sql_varchar"/>)
+    </cfif> 
   ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
 
 </cfquery>
@@ -207,6 +227,10 @@ function IgnoreStatus(x,y) {
           <td align="center">
             Broker Name
           </td>
+    
+      <td align="center">
+      Member ID
+          </td>
           
           <td rowspan="2" width="150" align="center">
             <input class="form_submit_button" type="submit" value="Search" name="Submit">
@@ -223,7 +247,7 @@ function IgnoreStatus(x,y) {
               multiple="yes" 
               size="3"
               style="width:150px;">
-            </cfselect>
+            </cfselect><br><br>
             <button type="button" id="StatusSub" onclick="Clear_Status()">
               Clear
             </button>
@@ -238,7 +262,7 @@ function IgnoreStatus(x,y) {
               multiple="yes" 
               size="3"
               style="width:150px;">
-            </cfselect>
+            </cfselect><br><br>
             <button type="button" id="StatusSub" onclick="Clear_Ignored()">
               Clear
             </button>
@@ -249,11 +273,22 @@ function IgnoreStatus(x,y) {
             <br>
             <br>
             <br>
-            <br>
             <button type="button" id="StatusSub" onclick="Clear_Name()">
               Clear
             </button>
           </td>
+    
+          <td align="center" style="vertical-align:middle;">
+            <cfoutput><input type="text" id="form_mem_id" name="form_mem_id" size="15" value="#form_mem_id#"></cfoutput>
+            <br>
+            <br>
+            <br>
+            <button type="button" id="StatusSub" onclick="Clear_Mem()">
+              Clear
+            </button>
+          </td>
+    
+    
         </tr>
       </table>
     </div>
