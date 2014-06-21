@@ -1,3 +1,4 @@
+<!--- WGG
 <cfinclude template = "../cf_includes/cf_PRE_template_include.htm">
 <cfparam name = "display_mode" default = "">
 <!--- set form and list files --->
@@ -7,6 +8,8 @@
 <cfset page_title="Data Issue Report">
 <!--- page header --->
 <cfinclude template = "../templates/header.htm">
+WGG --->
+
 <!--- WGG 5/27/2014 this is if you are passing in variables
   everything which is being chosen on the report like
   dates or broker id --->
@@ -24,54 +27,68 @@
 <cfinclude template="../cf_includes/set_defaults.htm">
 
 <cf set cid = #q_pop_blank_line_item.cid#>
-<cfoutput>#cid#</cfoutput>
+
 
 <cfquery name="q_pop_blank_line_item" datasource="#application.sys_ds#">
-INSERT INTO TAG_data_issues
-  (cid
-  ,k_tag_issue_type
-  ,k_tag_issue_reason
-  ,is_ignored
-  ,date_opened
-  ,is_resolved
-  ,k_brk_broker
-  ,k_mem_member_master
-  ,k_mem_membership_window
-  ,k_brk_entity_contract
-  ,k_tag_issue_status_id)
-SELECT
-   w.cid -- cid
-  ,1 -- issues type: missing line item
-  ,1 -- reason not known
-  ,0 -- not ignored
-  ,GETDATE() -- date opened
-  ,0 -- is resolved
-  ,w.k_brk_broker
-  ,w.k_mem_member_master
-  ,w.pk_mem_membership_window
-  ,w.k_brk_entity_contract
-  ,0 -- issue status is needs review
-FROM mem_membership_window w
-  LEFT JOIN TAG_data_issues
-    ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
-    AND TAG_data_issues.k_tag_issue_type = 1
-  
-WHERE 1=1
-  /* do not insert missing line item issues already in data issue table */
-  AND TAG_data_issues.pk_TAG_data_issues IS NULL
-  /* client is Molina */
-  AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-  /* Line item is not assigned */
-  AND w.K_BRK_entity_contract_line_item is NULL
-  /* Window start date is recent */
-  AND (w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -2, GETDATE()) AND GETDATE()))
-  /* Window is not cancelled */
-  AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
-  /* Do not include ignored reps */
-  AND w.k_brk_broker not in (
-    SELECT ignore.k_brk_broker
-    FROM tag_ignored_reps ignore
-  )
+  INSERT INTO TAG_data_issues
+    (cid
+    ,k_tag_issue_type
+    ,k_tag_issue_reason
+    ,is_ignored
+    ,date_opened
+    ,is_resolved
+    ,k_brk_broker
+    ,k_mem_member_master
+    ,k_mem_membership_window
+    ,k_brk_entity_contract
+    ,k_tag_issue_status_id)
+  SELECT
+     w.cid -- cid
+    ,1 -- issues type: missing line item
+    ,1 -- reason not known
+    ,0 -- not ignored
+    ,GETDATE() -- date opened
+    ,0 -- is resolved
+    ,w.k_brk_broker
+    ,w.k_mem_member_master
+    ,w.pk_mem_membership_window
+    ,w.k_brk_entity_contract
+    ,0 -- issue status is needs review
+  FROM mem_membership_window w
+    LEFT JOIN TAG_data_issues
+      ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
+      AND TAG_data_issues.k_tag_issue_type = 1
+    
+  WHERE 1=1
+    /* do not insert missing line item issues already in data issue table */
+    AND TAG_data_issues.pk_TAG_data_issues IS NULL
+    /* client is Molina */
+    AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+    /* Line item is not assigned */
+    AND w.K_BRK_entity_contract_line_item is NULL
+    /* Window start date is recent */
+    AND (w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -2, GETDATE()) AND GETDATE()))
+    /* Window is not cancelled */
+    AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
+    /* Do not include ignored reps */
+    AND w.k_brk_broker not in (
+      SELECT ignore.k_brk_broker
+      FROM tag_ignored_reps ignore
+    )
 </cfquery>
 
-<!--- record count not working --->
+
+<cfquery name="q_resolve_line_item" datasource="#application.sys_ds#">
+  /* Resolve Missing Line Item Issues */
+  UPDATE tdi
+  SET tdi.is_resolved = 1
+  FROM tag_data_issues tdi
+    INNER JOIN mem_membership_window w2
+      ON w2.pk_mem_membership_window = tdi.k_mem_membership_window
+      WHERE tdi.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+      and w2.K_BRK_entity_contract_line_item is NOT NULL
+</cfquery>
+
+<cfoutput>
+  data_issue_queries.htm ran for cid #cid#<br>
+</cfoutput>
