@@ -145,6 +145,68 @@ WGG --->
       and w2.K_BRK_entity_contract_line_item is NOT NULL
 </cfquery>
 
+<cfif cid EQ 7>
+<cfquery name="q_populate_no_agency" datasource="#application.sys_ds#">
+
+  /* Populating data issues where enrolling rep has no agency */
+  
+  
+  INSERT INTO TAG_data_issues
+    (cid
+    ,k_tag_issue_type
+    ,k_tag_issue_reason
+    ,is_ignored
+    ,date_opened
+    ,is_resolved
+    ,k_brk_broker
+    ,k_mem_member_master
+    ,k_mem_membership_window
+    ,k_brk_entity_contract
+    ,k_tag_issue_status_id)
+  
+  SELECT
+     w.cid -- cid
+    ,2 -- issues type: brokeer has no agency
+    ,1 -- reason not known
+    ,0 -- not ignored
+    ,GETDATE() -- date opened
+    ,0 -- is resolved
+    ,w.k_brk_broker
+    ,w.k_mem_member_master
+    ,w.pk_mem_membership_window
+    ,w.k_brk_entity_contract
+    ,0 -- issue status is needs review
+  FROM mem_membership_window w
+    LEFT JOIN TAG_data_issues
+      ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
+      AND TAG_data_issues.k_tag_issue_type = 1
+    LEFT JOIN brk_broker b
+      ON w.k_brk_broker = b.pk_brk_broker
+    LEFT JOIN BRK_broker__brk_agency_JOIN baj
+      ON b.pk_brk_broker = baj.k_brk_broker
+    INNER JOIN mem_member_master m
+      ON m.pk_mem_member_master = w.k_mem_member_master
+    
+  WHERE 1=1
+    /* do not insert missing line item issues already in data issue table */
+    AND TAG_data_issues.pk_TAG_data_issues IS NULL
+    /* client is Molina */
+    AND w.cid = 7
+    /* Window start date is recent */
+    AND (w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -2, GETDATE()) AND GETDATE()))
+    /* Window is not cancelled */
+    AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
+    /* Do not include ignored reps */
+    AND w.k_brk_broker not in (
+      SELECT ignore.k_brk_broker
+      FROM tag_ignored_reps ignore
+    )
+    /* the below needs to be modified per client */
+    AND b.k_brk_broker_type = '3954'
+    AND baj.k_brk_broker is NULL
+</cfquery>
+</cfif>
+
 
 <cfoutput>
   data_issue_queries.htm ran for cid #cid#<br>
