@@ -76,10 +76,10 @@ WGG --->
       FROM tag_ignored_reps ignore
     )
     <cfif cid EQ 5>
-    /* For Scan, eliminate Medi-Cal enrollments */
-    AND w.k_org_lob <> 7
-    /* For Scan, eliminate Miscellaneous contract */
-    AND w.k_BRK_entity_contract <> 164
+      /* For Scan, eliminate Medi-Cal enrollments */
+      AND w.k_org_lob <> 7
+      /* For Scan, eliminate Miscellaneous contract */
+      AND w.k_BRK_entity_contract <> 164
     </cfif>
 </cfquery>
 
@@ -136,6 +136,12 @@ WGG --->
         ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
       WHERE k_mem_membership_window = w.pk_mem_membership_window
         AND payment_period >= DATEADD(month, -2, GETDATE()))
+    <cfif cid EQ 5>
+      /* For Scan, eliminate Medi-Cal enrollments */
+      AND w.k_org_lob <> 7
+      /* For Scan, eliminate Miscellaneous contract */
+      AND w.k_BRK_entity_contract <> 164
+    </cfif>
 </cfquery>
 
 
