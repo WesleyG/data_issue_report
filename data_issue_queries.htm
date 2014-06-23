@@ -77,9 +77,9 @@ WGG --->
     )
     <cfif cid EQ 5>
     /* For Scan, eliminate Medi-Cal enrollments */
-    AND w.k_org_lob != 7
+    AND w.k_org_lob <> 7
     /* For Scan, eliminate Miscellaneous contract */
-    AND w.k_BRK_entity_contract != 164
+    AND w.k_BRK_entity_contract <> 164
     </cfif>
 </cfquery>
 
