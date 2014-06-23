@@ -58,6 +58,8 @@ WGG --->
     LEFT JOIN TAG_data_issues
       ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
       AND TAG_data_issues.k_tag_issue_type = 1
+    LEFT JOIN brk_broker b
+      ON w.k_brk_broker = b.pk_brk_broker
     
   WHERE 1=1
     /* do not insert missing line item issues already in data issue table */
@@ -77,7 +79,7 @@ WGG --->
     )
     <cfif cid EQ 5>
       /* For Scan, eliminate Medi-Cal enrollments */
-      AND w.k_org_lob <> 7
+      AND (w.k_org_lob <> 7 OR (w.k_org_lob = 7 AND b.k_brk_broker_type <> 3936))
       /* For Scan, eliminate Miscellaneous contract */
       AND w.k_BRK_entity_contract <> 164
     </cfif>
@@ -116,6 +118,8 @@ WGG --->
     LEFT JOIN TAG_data_issues
       ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
       AND TAG_data_issues.k_tag_issue_type = 1
+    LEFT JOIN brk_broker b
+      ON w.k_brk_broker = b.pk_brk_broker
     
   WHERE 1=1
     /* do not insert missing line item issues already in data issue table */
@@ -138,7 +142,7 @@ WGG --->
         AND payment_period >= DATEADD(month, -2, GETDATE()))
     <cfif cid EQ 5>
       /* For Scan, eliminate Medi-Cal enrollments */
-      AND w.k_org_lob <> 7
+      AND (w.k_org_lob <> 7 OR (w.k_org_lob = 7 AND b.k_brk_broker_type <> 3936))
       /* For Scan, eliminate Miscellaneous contract */
       AND w.k_BRK_entity_contract <> 164
     </cfif>
