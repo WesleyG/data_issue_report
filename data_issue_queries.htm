@@ -75,6 +75,12 @@ WGG --->
       SELECT ignore.k_brk_broker
       FROM tag_ignored_reps ignore
     )
+    <cfif cid EQ 7>
+    /* For Scan, eliminate Medi-Cal enrollments */
+    AND w.k_org_lob != 7
+    /* For Scan, eliminate Miscellaneous contract */
+    AND w.k_BRK_entity_contract != 164
+    </cfif>
 </cfquery>
 
 <!--- WGG 6/21/2014 populates data issues for blank line items for any windows which generated
