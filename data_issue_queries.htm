@@ -83,7 +83,7 @@ WGG --->
         (w.k_org_lob <> 7 OR 
         (w.k_org_lob = 7 
           AND w.k_BRK_entity_contract 
-          NOT IN (148, 171, 142, 160, 145, 146, 210, 193, 192, 149, 143)
+          IN (148, 171, 142, 160, 145, 146, 210, 193, 192, 149, 143)
         ))
       /* For Scan, eliminate Miscellaneous contract */
       AND w.k_BRK_entity_contract <> 164
@@ -151,7 +151,7 @@ WGG --->
         (w.k_org_lob <> 7 OR 
         (w.k_org_lob = 7 
           AND w.k_BRK_entity_contract 
-          NOT IN (148, 171, 142, 160, 145, 146, 210, 193, 192, 149, 143)
+          IN (148, 171, 142, 160, 145, 146, 210, 193, 192, 149, 143)
         ))
       /* For Scan, eliminate Miscellaneous contract */
       AND w.k_BRK_entity_contract <> 164
