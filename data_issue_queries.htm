@@ -78,8 +78,13 @@ WGG --->
       FROM tag_ignored_reps ignore
     )
     <cfif cid EQ 5>
-      /* For Scan, eliminate Medi-Cal enrollments */
-      AND (w.k_org_lob <> 7 OR (w.k_org_lob = 7 AND b.k_brk_broker_type <> 3936))
+      /* For Scan, eliminate Medi-Cal enrollments for external contracts */
+      AND 
+        (w.k_org_lob <> 7 OR 
+        (w.k_org_lob = 7 
+          AND w.k_BRK_entity_contract 
+          NOT IN (148, 171, 142, 160, 145, 146, 210, 193, 192, 149, 143)
+        ))
       /* For Scan, eliminate Miscellaneous contract */
       AND w.k_BRK_entity_contract <> 164
     </cfif>
@@ -141,8 +146,13 @@ WGG --->
       WHERE k_mem_membership_window = w.pk_mem_membership_window
         AND payment_period >= DATEADD(month, -2, GETDATE()))
     <cfif cid EQ 5>
-      /* For Scan, eliminate Medi-Cal enrollments */
-      AND (w.k_org_lob <> 7 OR (w.k_org_lob = 7 AND b.k_brk_broker_type <> 3936))
+      /* For Scan, eliminate Medi-Cal enrollments for external contracts */
+      AND 
+        (w.k_org_lob <> 7 OR 
+        (w.k_org_lob = 7 
+          AND w.k_BRK_entity_contract 
+          NOT IN (148, 171, 142, 160, 145, 146, 210, 193, 192, 149, 143)
+        ))
       /* For Scan, eliminate Miscellaneous contract */
       AND w.k_BRK_entity_contract <> 164
     </cfif>
@@ -161,7 +171,7 @@ WGG --->
       and w2.K_BRK_entity_contract_line_item is NOT NULL
 </cfquery>
 
-<cfif cid EQ 7>
+
 <cfquery name="q_populate_no_agency" datasource="#application.sys_ds#">
 
   /* Populating data issues where enrolling rep has no agency */
@@ -207,7 +217,7 @@ WGG --->
     /* do not insert missing line item issues already in data issue table */
     AND TAG_data_issues.pk_TAG_data_issues IS NULL
     /* client is Molina */
-    AND w.cid = 7
+    AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
     /* Window start date is recent */
     AND (w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -2, GETDATE()) AND GETDATE()))
     /* Window is not cancelled */
@@ -217,11 +227,14 @@ WGG --->
       SELECT ignore.k_brk_broker
       FROM tag_ignored_reps ignore
     )
-    /* the below needs to be modified per client */
-    AND b.k_brk_broker_type = '3954'
+    <cfif cid EQ 7>
+      /* the below needs to be modified per client */
+      AND b.k_brk_broker_type = '3954'
+    </cfif>
+    AND w.k_brk_broker is not NULL
     AND baj.k_brk_broker is NULL
 </cfquery>
-</cfif>
+
 
 
 <cfoutput>
