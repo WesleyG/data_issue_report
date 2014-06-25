@@ -34,71 +34,8 @@ WGG --->
 ############################################################
 --->
 
-<!--- WGG 6/21/2014 looks for blank line items for effectives in last 3 months--->
-<cfquery name="q_pop_blank_line_item" datasource="#application.sys_ds#">
-  INSERT INTO TAG_data_issues
-    (cid
-    ,k_tag_issue_type
-    ,k_tag_issue_reason
-    ,is_ignored
-    ,date_opened
-    ,is_resolved
-    ,k_brk_broker
-    ,k_mem_member_master
-    ,k_mem_membership_window
-    ,k_brk_entity_contract
-    ,k_tag_issue_status_id)
-  SELECT
-     w.cid -- cid
-    ,1 -- issues type: missing line item
-    ,1 -- reason not known
-    ,0 -- not ignored
-    ,GETDATE() -- date opened
-    ,0 -- is resolved
-    ,w.k_brk_broker
-    ,w.k_mem_member_master
-    ,w.pk_mem_membership_window
-    ,w.k_brk_entity_contract
-    ,0 -- issue status is needs review
-  FROM mem_membership_window w
-    LEFT JOIN TAG_data_issues
-      ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
-      AND TAG_data_issues.k_tag_issue_type = 1
-    LEFT JOIN brk_broker b
-      ON w.k_brk_broker = b.pk_brk_broker
-    
-  WHERE 1=1
-    /* do not insert missing line item issues already in data issue table */
-    AND TAG_data_issues.pk_TAG_data_issues IS NULL
-    /* client is Molina */
-    AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-    /* Line item is not assigned */
-    AND w.K_BRK_entity_contract_line_item is NULL
-    /* Window start date is recent */
-    AND (w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()))
-    /* Window is not cancelled */
-    AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
-    /* Do not include ignored reps */
-    AND w.k_brk_broker not in (
-      SELECT ignore.k_brk_broker
-      FROM tag_ignored_reps ignore
-    )
-    <cfif cid EQ 5>
-      /* For Scan, eliminate Medi-Cal enrollments for external contracts */
-      AND 
-        (w.k_cms_contract <> 12 
-        OR 
-        (w.k_cms_contract = 12 
-          AND w.k_BRK_entity_contract 
-          IN (148, 171, 142, 160, 145, 146, 210, 193, 192, 149, 143)
-        ))
-      /* For Scan, eliminate Miscellaneous contract */
-      AND w.k_BRK_entity_contract <> 164
-    </cfif>
-</cfquery>
-
 <!--- WGG 6/21/2014 populates data issues for blank line items for any windows which generated
-    transactions in the last two months--->
+    transactions in the last two months or effetive date in last 3 months--->
 <cfquery name="q_pop_blank_line_item_trans" datasource="#application.sys_ds#">
   INSERT INTO TAG_data_issues
     (cid
@@ -134,9 +71,13 @@ WGG --->
       ON w.k_brk_broker = b.pk_brk_broker
     
   WHERE 1=1
-    /* do not insert missing line item issues already in data issue table */
-    AND TAG_data_issues.pk_TAG_data_issues IS NULL
-    /* client is Molina */
+    /* do not insert missing line item issues already in data issue table for 
+      this issue type */
+    AND (
+        TAG_data_issues.k_mem_membership_window is NULL
+        OR TAG_data_issues.k_tag_issue_type <> 1
+      )
+    /* select client */
     AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
     /* Line item is not assigned */
     AND w.K_BRK_entity_contract_line_item is NULL
@@ -147,11 +88,23 @@ WGG --->
       SELECT ignore.k_brk_broker
       FROM tag_ignored_reps ignore
     )
-    AND EXISTS ( SELECT k_mem_membership_window FROM brk_Commission_transaction
-      INNER JOIN brk_entity_contract_payment_period 
-        ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
-      WHERE k_mem_membership_window = w.pk_mem_membership_window
-        AND payment_period >= DATEADD(month, -2, GETDATE()))
+    AND
+    (
+      /* Window has a transaction in Last 2 months */
+      (
+        w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE())
+      )
+      OR
+      /* Window has an effective date in last 3 months */
+      (
+        EXISTS 
+        ( SELECT k_mem_membership_window FROM brk_Commission_transaction
+          INNER JOIN brk_entity_contract_payment_period 
+            ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
+          WHERE k_mem_membership_window = w.pk_mem_membership_window
+            AND payment_period >= DATEADD(month, -2, GETDATE()))
+      )
+    )
     <cfif cid EQ 5>
       /* For Scan, eliminate Medi-Cal enrollments for external contracts */
       AND 
