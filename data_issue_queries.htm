@@ -373,7 +373,7 @@ WGG --->
 ########### Resolve Line Item Issues###################
 #######################################################
 --->
-<cfquery name="q_resolve_line_item" datasource="#application.sys_ds#">
+<cfquery name="q_resolve_line_item" datasource="#application.sys_ds#" result="resolve_result">
   /* Resolve Missing Line Item Issues */
   UPDATE tdi
   SET tdi.is_resolved = 1
@@ -386,4 +386,5 @@ WGG --->
 
 <cfoutput>
   data_issue_queries.htm ran for cid #cid#<br>
+  record processed: #resolve_result.RecordCount#
 </cfoutput>
