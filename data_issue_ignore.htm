@@ -1,5 +1,8 @@
 <cfquery name="q_update_ignore" datasource="#application.sys_ds#">
 	UPDATE TAG_data_issues
 	SET TAG_data_issues.is_ignored = #sID#
-	WHERE TAG_data_issues.pk_TAG_data_issues = #ID#
+		,TAG_data_issues.K_USR_operator = #session.login.K_USR_operator#
+		,TAG_data_issues.time_stamp = GETDATE()
+	WHERE 
+		TAG_data_issues.pk_TAG_data_issues = #ID#
 </cfquery>
