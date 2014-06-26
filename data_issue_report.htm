@@ -7,7 +7,11 @@
 <cfset page_title="Data Issue Report">
 <!--- page header --->
 <cfinclude template = "../templates/header.htm">
-<cfinclude template = "../ticket/data_issue_queries.htm">
+
+<!---
+<cfinclude template = "data_issue_queries.htm">
+--->
+
 <!--- WGG 5/27/2014 this is if you are passing in variables
   everything which is being chosen on the report like
   dates or broker id --->
@@ -72,6 +76,17 @@ function Clear_Resolved() {
 function Clear_Name() {
   $("#form_broker_name").val("");
 }   
+  
+ function Click_Refresh() {
+     $.ajax({
+            type: "POST",
+            url: "data_issue_queries.htm",
+            success: function(){
+              //alert('hi'); 
+              location.reload(); 
+          }
+        })
+}  
   
 function SaveStatus(x,y) {
   //alert(x+' '+y);
@@ -161,6 +176,7 @@ function IgnoreStatus(x,y) {
         ,b.name AS broker_name
         ,c.name
     ,issue.k_tag_issue_status_id
+  ,o.name as lob_name
     FROM dbo.TAG_data_issues issue
       LEFT JOIN TAG_issue_type itype
           on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
@@ -172,8 +188,12 @@ function IgnoreStatus(x,y) {
           on issue.k_brk_broker = b.pk_brk_broker
       LEFT JOIN brk_entity_contract c
           on issue.k_brk_entity_contract = c.pk_brk_entity_contract
-    LEFT JOIN tag_issue_status s
-      on issue.k_tag_issue_status = s.pk_tag_issue_status
+      LEFT JOIN tag_issue_status s
+          on issue.k_tag_issue_status = s.pk_tag_issue_status
+    LEFT JOIN mem_membership_window w
+      on w.pk_mem_membership_window = issue.k_mem_membership_window
+    INNER JOIN org_lob o
+      on w.k_org_lob = o.pk_org_lob
   WHERE 1=1
 
     <cfif isdefined('form.form_ticket_status')>
@@ -262,6 +282,8 @@ function IgnoreStatus(x,y) {
           
           <td rowspan="2" width="150" align="center">
             <input class="form_submit_button" type="submit" value="Search" name="Submit">
+      <br><br>
+      <button type="button" id="RefreshButton" onclick="Click_Refresh()">Refresh</button>
           </td>
         </tr>
         <tr class="list_even_odd">
@@ -336,6 +358,11 @@ function IgnoreStatus(x,y) {
     </div>
   </div>
   <br>
+<!---
+################################################################
+############## Data Issues Table##########################
+################################################################
+--->
   <div style="border-style:solid; border-width: 1px; border-radius:15px; width:90%;
     margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
     <div align="center">
@@ -390,6 +417,8 @@ function IgnoreStatus(x,y) {
               Contract ID
               <br>
               Contract Name
+        <br>
+        Line of Business
             </td>
             <!--- WGG 10 --->
             <td align="center">
@@ -470,6 +499,8 @@ function IgnoreStatus(x,y) {
               #k_brk_entity_contract#
               <br>
               #name#
+        <br>
+        #lob_name#
             </td>
             <!--- WGG 10 --->
             <td align="center">

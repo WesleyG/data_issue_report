@@ -115,7 +115,7 @@ WGG --->
           IN (148, 171, 142, 160, 145, 146, 210, 193, 192, 149, 143)
         ))
       /* For Scan, eliminate Miscellaneous contract */
-      AND w.k_BRK_entity_contract <> 164
+      AND ISNULL(w.k_BRK_entity_contract, 1) <> 164
     </cfif>
 </cfquery>
 
