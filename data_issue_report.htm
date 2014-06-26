@@ -22,8 +22,11 @@
   form_ticket_status
   form_ticket_ignored
   form_broker_name
+  form_broker_id
   form_mem_id
   form_ticket_resolved
+  form_ticket_type
+  form_ticket_reason
   ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -73,9 +76,21 @@ function Clear_Resolved() {
   $("#form_ticket_resolved").val(-1);
 }
 
+function Clear_Type() {
+  $("#form_ticket_type").val(-1);
+}
+
+function Clear_Reason() {
+  $("#form_ticket_reason").val(-1);
+}
+
 function Clear_Name() {
   $("#form_broker_name").val("");
 }   
+
+function Clear_Mem() {
+  $("#form_mem_id").val("");
+}  
   
  function Click_Refresh() {
      $.ajax({
@@ -208,6 +223,14 @@ function IgnoreStatus(x,y) {
       AND is_resolved IN (<cfqueryparam value="#form.form_ticket_resolved#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif>   
 
+  <cfif isdefined('form.form_ticket_type') AND len('form.form_ticket_type')>
+    AND k_tag_issue_type IN (<cfqueryparam value="#form.form_ticket_type#" cfsqltype="cf_sql_integer" list="true"/>)
+  </cfif> 
+  
+  <cfif isdefined('form.form_ticket_reason') AND len('form.form_ticket_reason')>
+    AND k_tag_issue_reason IN (<cfqueryparam value="#form.form_ticket_reason#" cfsqltype="cf_sql_integer" list="true"/>)
+  </cfif> 
+
     <cfif isdefined('form.form_broker_name')>
       AND b.name LIKE (<cfqueryparam value="%#form_broker_name#%" cfsqltype="cf_sql_varchar"/>)
     </cfif> 
@@ -249,9 +272,47 @@ function IgnoreStatus(x,y) {
   FROM tag_data_issues
   GROUP BY is_resolved
 </cfquery>
+
+<cfquery name="q_sel_type" datasource="#application.sys_ds#">
+  SELECT 
+    type =  --type is the alias
+      CASE k_tag_issue_type
+        WHEN 1  THEN 'No Line Item'
+        WHEN 2 THEN 'Broker has no Agency'
+    WHEN 3 THEN 'App rec outside Agency dates'
+        ELSE 'Unknown'
+
+        END
+    ,k_tag_issue_type
+  FROM tag_data_issues
+  GROUP BY k_tag_issue_type
+</cfquery>
+
+
+<cfquery name="q_sel_reason" datasource="#application.sys_ds#">
+  SELECT 
+  reason =  --reason is the alias
+    CASE k_tag_issue_reason
+          WHEN 1  THEN 'Unknown'
+          WHEN 2 THEN 'No Broker Contract'
+      WHEN 3 THEN 'App Rec Outside Contract'
+      WHEN 4 THEN 'No Universal Contract'
+      WHEN 5 THEN 'No Agency'
+      WHEN 6 THEN 'App Rec Outside Agency'
+          ELSE 'Unknown'
+    END
+  ,k_tag_issue_reason
+  FROM tag_data_issues
+  GROUP BY k_tag_issue_reason
+</cfquery>
+
+  <!--- ############################################################################
+  ################################# Data Issue Search ##############################
+  ##################################################################################--->
+  
 <!--- WGG 6/1/2014 Display issues on page --->
 <cfform method="POST" action="data_issue_report.htm" name="test">
-  <div style="border-style:solid; border-width: 1px; border-radius:15px; width:60%;
+  <div style="border-style:solid; border-width: 1px; border-radius:15px; width:100%;
     margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
     <div align="center">
       <span>
@@ -259,6 +320,7 @@ function IgnoreStatus(x,y) {
           Data Issue Search
         </b>
       </span>
+  
       <table id="cpy" class="list_table scrolling" scroll_height="700" width="100%">
         <tr class="list_col_hdr">
           <td align="center">
@@ -271,9 +333,17 @@ function IgnoreStatus(x,y) {
           <td align="center">
             Resolved
           </td>
-          
+
           <td align="center">
-            Broker Name
+            Issue Type
+          </td>
+              
+          <td align="center">
+            Issue Reason
+          </td>
+    
+      <td align="center">
+      Rep Name
           </td>
     
       <td align="center">
@@ -331,7 +401,39 @@ function IgnoreStatus(x,y) {
               Clear
             </button>
           </td>
-          
+
+    <!--- WGG 6/25/2014 Issue Type --->
+          <td align="center">
+            <cfselect query="q_sel_type" 
+              id="form_ticket_type"
+              value="k_tag_issue_type" 
+              display="type" 
+              name="form_ticket_type" 
+              selected="#form_ticket_type#" 
+              multiple="yes" 
+              size="3">
+            </cfselect><br><br>
+            <button type="button" id="StatusSub" onclick="Clear_Type()">
+              Clear
+            </button>
+          </td>
+    
+    <!--- WGG 6/25/2014 Issue Reason --->
+          <td align="center">
+            <cfselect query="q_sel_reason" 
+              id="form_ticket_reason"
+              value="k_tag_issue_reason" 
+              display="reason" 
+              name="form_ticket_reason" 
+              selected="#form_ticket_reason#" 
+              multiple="yes" 
+              size="3">
+            </cfselect><br><br>
+            <button type="button" id="StatusSub" onclick="Clear_Reason()">
+              Clear
+            </button>
+          </td>
+    
           <td align="center" style="vertical-align:middle;">
             <cfoutput><input type="text" id="form_broker_name" name="form_broker_name" size="15" value="#form_broker_name#"></cfoutput>
             <br>
@@ -341,7 +443,7 @@ function IgnoreStatus(x,y) {
               Clear
             </button>
           </td>
-    
+
           <td align="center" style="vertical-align:middle;">
             <cfoutput><input type="text" id="form_mem_id" name="form_mem_id" size="15" value="#form_mem_id#"></cfoutput>
             <br>
@@ -350,8 +452,7 @@ function IgnoreStatus(x,y) {
             <button type="button" id="StatusSub" onclick="Clear_Mem()">
               Clear
             </button>
-          </td>
-    
+          </td> 
     
         </tr>
       </table>
@@ -360,10 +461,10 @@ function IgnoreStatus(x,y) {
   <br>
 <!---
 ################################################################
-############## Data Issues Table##########################
+############## Data Issues Table ##########################
 ################################################################
 --->
-  <div style="border-style:solid; border-width: 1px; border-radius:15px; width:90%;
+  <div style="border-style:solid; border-width: 1px; border-radius:15px; width:100%;
     margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
     <div align="center">
       <span>
@@ -385,12 +486,10 @@ function IgnoreStatus(x,y) {
               Resolved
             </td>
             <!--- WGG 3 --->
-            <td align="center">
-              Issue Type
-            </td>
-            <!--- WGG 1 --->
-            <td align="center">
-              Reason
+      <td align="center">
+        Issue Type
+        <br>
+        Reason
             </td>
             <!--- WGG 2 --->
             <td align="center">
@@ -464,13 +563,10 @@ function IgnoreStatus(x,y) {
             <td align="center">
               #is_resolved_word#
             </td>
-            <!--- WGG 2 --->
-            <td align="center">
-              #issue_type_name#
-            </td>
-            <!--- WGG 1 --->
-            <td align="center">
-              #issue_reason_name#
+      <td align="center">
+        #issue_type_name#
+        <br>
+        #issue_reason_name#
             </td>
             <!--- WGG 2 --->
             <td align="center">
