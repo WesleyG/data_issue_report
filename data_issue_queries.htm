@@ -112,7 +112,7 @@ WGG --->
         OR 
         (w.k_cms_contract = 12 
           AND w.k_BRK_entity_contract 
-          IN (148, 171, 142, 160, 145, 146, 210, 193, 192, 149, 143)
+          IN (148, 171, 142, 160, 145, 146, 193, 192, 149, 143) <!--- WGG 6/26/2014 removed contract 210, per Wing it is external --->
         ))
       /* For Scan, eliminate Miscellaneous contract */
       AND ISNULL(w.k_BRK_entity_contract, 1) <> 164
@@ -383,6 +383,41 @@ INSERT INTO TAG_data_issues
       )
     )
     AND di.k_tag_issue_type = 1
+</cfquery>
+
+<!--- WGG 6/27/2014 added query to find missing line items due to no matching group --->
+<cfquery name="q_set_reason_no_group" datasource="#application.sys_ds#">
+  UPDATE TAG_data_issues
+  SET k_tag_issue_reason =7 --No line item with matching group, note for Scan groups include counties
+  FROM TAG_data_issues di
+  WHERE 1=1
+    /* Only check if a contract is assigned */
+    AND di.k_brk_entity_contract IS NOT NULL
+    /* Only check for issues where line item is blank */
+    AND di.k_tag_issue_type = 1
+    AND di.k_mem_membership_window in 
+    (
+      SELECT DISTINCT w.pk_mem_membership_window
+      FROM grp_group g
+        LEFT JOIN mem_membership_window_group wg 
+          ON wg.k_grp_group = g.pk_grp_group
+        LEFT JOIN mem_membership_window w
+          ON wg.k_mem_membership_window = w.pk_mem_membership_window
+        LEFT JOIN BRK_entity_contract_line_item becli
+          ON becli.k_BRK_entity_contract = w.k_BRK_entity_contract
+        LEFT JOIN BRK_entity_contract_line_item__grp_group_JOIN ggj
+          ON ggj.k_BRK_entity_contract_line_item = becli.pk_BRK_entity_contract_line_item
+      WHERE 1=1
+        /* where the window group is not in the list of available groups for ANY line item
+          under the contract */
+        AND wg.k_grp_group 
+          NOT IN (SELECT distinct ggj2.k_grp_group
+              FROM BRK_entity_contract_line_item becli2
+                INNER JOIN BRK_entity_contract_line_item__grp_group_JOIN ggj2
+                  ON ggj2.k_BRK_entity_contract_line_item = becli2.pk_BRK_entity_contract_line_item
+              WHERE becli2.k_BRK_entity_contract = becli.k_BRK_entity_contract
+              )
+    )
 </cfquery>
 
 <cfif cid EQ 4>
