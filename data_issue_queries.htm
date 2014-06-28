@@ -288,6 +288,8 @@ INSERT INTO TAG_data_issues
       ON b.pk_brk_broker = w.k_brk_broker
     LEFT JOIN BRK_broker__brk_agency_JOIN baj1 
       ON baj1.k_brk_broker = b.pk_brk_broker
+  LEFT JOIN brk_entity_contract bec
+    on w.k_brk_entity_contract = bec.pk_brk_entity_contract
   WHERE 1=1
     AND w.cid  = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
     /* cases where app rec date doesn't line up with active agency */
@@ -325,6 +327,9 @@ INSERT INTO TAG_data_issues
             AND payment_period >= DATEADD(month, -2, GETDATE()))
       )
     )
+  <cfif cid EQ 7>
+    AND NOT (w.k_brk_entity_contract IS NULL OR bec.name like '%Captive%')
+  </cfif>
 </cfquery>
 
 <!--- 
