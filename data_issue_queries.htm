@@ -126,85 +126,21 @@ WGG --->
 
 <cfquery name="q_populate_no_agency" datasource="#application.sys_ds#">
 
-  /* Populating data issues where enrolling rep has no agency for effectives in last 3 months*/
-  
-  
-  INSERT INTO TAG_data_issues
-    (cid
-    ,k_tag_issue_type
-    ,k_tag_issue_reason
-    ,is_ignored
-    ,date_opened
-    ,is_resolved
-    ,k_brk_broker
-    ,k_mem_member_master
-    ,k_mem_membership_window
-    ,k_brk_entity_contract
-    ,k_tag_issue_status_id)
-  
-  SELECT
-     w.cid -- cid
-    ,2 -- issues type: broker has no agency
-    ,5 -- reason not known
-    ,0 -- not ignored
-    ,GETDATE() -- date opened
-    ,0 -- is resolved
-    ,w.k_brk_broker
-    ,w.k_mem_member_master
-    ,w.pk_mem_membership_window
-    ,w.k_brk_entity_contract
-    ,0 -- issue status is needs review
-  FROM mem_membership_window w
-    LEFT JOIN TAG_data_issues
-      ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
-      AND TAG_data_issues.k_tag_issue_type = 2
-    LEFT JOIN brk_broker b
-      ON w.k_brk_broker = b.pk_brk_broker
-    LEFT JOIN BRK_broker__brk_agency_JOIN baj
-      ON b.pk_brk_broker = baj.k_brk_broker
-    INNER JOIN mem_member_master m
-      ON m.pk_mem_member_master = w.k_mem_member_master
-    
-  WHERE 1=1
-    /* do not insert missing line item issues already in data issue table */
-    AND TAG_data_issues.pk_TAG_data_issues IS NULL
-    /* client is Molina */
-    AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-    /* Window start date is recent */
-    AND (w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()))
-    /* Window is not cancelled */
-    AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
-    /* Do not include ignored reps */
-    AND w.k_brk_broker not in (
-      SELECT ignore.k_brk_broker
-      FROM tag_ignored_reps ignore
-    )
-    <cfif cid EQ 7>
-      /* the below needs to be modified per client */
-      AND b.k_brk_broker_type = '3954'
-    </cfif>
-    AND w.k_brk_broker is not NULL
-    AND baj.k_brk_broker is NULL
-</cfquery>
-
-<cfquery name="q_populate_no_agency" datasource="#application.sys_ds#">
-
   /* Populating data issues where enrolling rep has no agency for windows with
-    transactions in the last two months */
-  
+      transactions in the last two months */
   
   INSERT INTO TAG_data_issues
-    (cid
-    ,k_tag_issue_type
-    ,k_tag_issue_reason
-    ,is_ignored
-    ,date_opened
-    ,is_resolved
-    ,k_brk_broker
-    ,k_mem_member_master
-    ,k_mem_membership_window
-    ,k_brk_entity_contract
-    ,k_tag_issue_status_id)
+     (cid
+     ,k_tag_issue_type
+     ,k_tag_issue_reason
+     ,is_ignored
+     ,date_opened
+     ,is_resolved
+     ,k_brk_broker
+     ,k_mem_member_master
+     ,k_mem_membership_window
+     ,k_brk_entity_contract
+     ,k_tag_issue_status_id)
   
   SELECT
      w.cid -- cid
@@ -226,32 +162,42 @@ WGG --->
       ON w.k_brk_broker = b.pk_brk_broker
     LEFT JOIN BRK_broker__brk_agency_JOIN baj
       ON b.pk_brk_broker = baj.k_brk_broker
-    INNER JOIN mem_member_master m
+    LEFT JOIN mem_member_master m
       ON m.pk_mem_member_master = w.k_mem_member_master
-    
+    LEFT JOIN brk_entity_contract bec
+      ON bec.pk_brk_entity_contract = w.k_brk_entity_contract
+      
   WHERE 1=1
-    /* do not insert missing line item issues already in data issue table */
+      /* do not insert missing line item issues already in data issue table */
     AND TAG_data_issues.pk_TAG_data_issues IS NULL
     AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
     /* Window is not cancelled */
     AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
     /* Do not include ignored reps */
-    AND w.k_brk_broker not in (
-      SELECT ignore.k_brk_broker
-      FROM tag_ignored_reps ignore
-    )
+    AND w.k_brk_broker 
+      not in (
+        SELECT ignore.k_brk_broker
+        FROM tag_ignored_reps ignore
+      )
     <cfif cid EQ 7>
-      /* the below needs to be modified per client */
-      AND b.k_brk_broker_type = '3954'
+      /* Molina - ingore windows with captive contracts */
+      AND bec.name NOT LIKE '%Captive%'
     </cfif>
     AND w.k_brk_broker is not NULL
     AND baj.k_brk_broker is NULL
-    AND EXISTS 
-      ( SELECT k_mem_membership_window FROM brk_Commission_transaction
+    AND (
+      (EXISTS 
+        ( SELECT k_mem_membership_window FROM brk_Commission_transaction
         INNER JOIN brk_entity_contract_payment_period 
           ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
         WHERE k_mem_membership_window = w.pk_mem_membership_window
           AND payment_period >= DATEADD(month, -2, GETDATE()))
+      )
+    OR
+      (
+        w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE())
+      )
+    )
 </cfquery>
 
 <cfquery name="q_populate_app_outside_agency" datasource="#application.sys_ds#">
@@ -328,6 +274,7 @@ INSERT INTO TAG_data_issues
       )
     )
   <cfif cid EQ 7>
+    <!--- Molina - remove agency test for windows without a contract or with a captive contract --->
     AND NOT (w.k_brk_entity_contract IS NULL OR bec.name like '%Captive%')
   </cfif>
 </cfquery>
@@ -460,6 +407,19 @@ INSERT INTO TAG_data_issues
   AND tdi.k_tag_issue_type = 1
 </cfquery>
 
+<cfquery name="q_resolve_agency" datasource="#application.sys_ds#" result="resolve_result">
+  UPDATE tdi
+  SET tdi.is_resolved = 1
+  FROM tag_data_issues tdi
+    INNER JOIN mem_membership_window w2
+      ON w2.pk_mem_membership_window = tdi.k_mem_membership_window
+    LEFT JOIN BRK_broker__brk_agency_JOIN baj2
+      ON baj2.k_brk_broker = w2.k_brk_broker
+  WHERE tdi.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+    AND tdi.k_tag_issue_type = 2
+    AND w2.application_date between baj2.start_date AND ISNULL(baj2.end_date,'2199-01-01')
+</cfquery>
+  
 <cfoutput>
   data_issue_queries.htm ran for cid #cid#<br>
   record processed: #resolve_result.RecordCount#
