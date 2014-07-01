@@ -285,57 +285,6 @@ INSERT INTO TAG_data_issues
 #######################################################
 --->
 
-<cfquery name="q_set_reason_app_outside" datasource="#application.sys_ds#">
-  UPDATE TAG_data_issues
-  SET k_tag_issue_reason =3 -- molina, reason is app received outside of broker contract
-  FROM TAG_data_issues di
-  WHERE
-    di.k_mem_membership_window in (
-  
-      SELECT w.pk_mem_membership_window
-      FROM mem_membership_window w
-        INNER JOIN mem_member_master m 
-          ON m.pk_mem_member_master = w.k_mem_member_master
-        LEFT JOIN brk_broker b
-          ON b.pk_brk_broker = w.k_brk_broker
-        LEFT JOIN brk_broker__brk_entity_contract_join becj 
-          ON becj.k_brk_broker = b.pk_brk_broker
-      WHERE 1=1
-        AND w.cid  = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-        and w.application_date NOT between becj.start_date AND ISNULL(becj.end_date, '2199-01-01')
-        and NOT EXISTS (
-              SELECT w.application_date
-              FROM
-                mem_membership_window w2
-              LEFT JOIN
-                brk_broker b2
-                  on b2.pk_brk_broker = w2.k_brk_broker
-              LEFT JOIN
-                brk_broker__brk_entity_contract_join becj2
-                  on becj2.k_brk_broker = b2.pk_brk_broker
-              WHERE 
-                w.application_date between becj2.start_date AND ISNULL(becj2.end_date,'2199-01-01')
-                and w.pk_mem_membership_window = w2.pk_mem_membership_window
-            ) 
-    )
-    AND di.k_tag_issue_type = 1
-</cfquery>
-
-<cfquery name="q_set_reason_no_contract" datasource="#application.sys_ds#">
-  UPDATE TAG_data_issues
-  SET k_tag_issue_reason =2 -- molina, reason is no broker contract
-  FROM TAG_data_issues di
-  WHERE
-    di.pk_TAG_data_issues in (
-      SELECT di2.pk_TAG_data_issues
-      FROM TAG_data_issues di2
-      WHERE di2.k_brk_broker not in (
-        SELECT becj.k_brk_broker
-        FROM BRK_broker__BRK_entity_contract_JOIN becj
-      )
-    )
-    AND di.k_tag_issue_type = 1
-</cfquery>
 
 <!--- WGG 6/27/2014 added query to find missing line items due to no matching group --->
 <cfquery name="q_set_reason_no_group" datasource="#application.sys_ds#">
@@ -404,6 +353,22 @@ INSERT INTO TAG_data_issues
                 w.application_date between becj2.start_date AND ISNULL(becj2.end_date,'2199-01-01')
                 and w.pk_mem_membership_window = w2.pk_mem_membership_window
             ) 
+    )
+    AND di.k_tag_issue_type = 1
+</cfquery>
+
+<cfquery name="q_set_reason_no_contract" datasource="#application.sys_ds#">
+  UPDATE TAG_data_issues
+  SET k_tag_issue_reason =2 -- molina, reason is no broker contract
+  FROM TAG_data_issues di
+  WHERE
+    di.pk_TAG_data_issues in (
+      SELECT di2.pk_TAG_data_issues
+      FROM TAG_data_issues di2
+      WHERE di2.k_brk_broker not in (
+        SELECT becj.k_brk_broker
+        FROM BRK_broker__BRK_entity_contract_JOIN becj
+      )
     )
     AND di.k_tag_issue_type = 1
 </cfquery>

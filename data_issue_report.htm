@@ -91,19 +91,24 @@ function Clear_Name() {
 function Clear_Mem() {
   $("#form_mem_id").val("");
 }  
-  
+ 
+ <!-- WGG 6/30/2014 need Bryan to look at this --->
  function Click_Refresh() {
-
+  alert('hi1');
+  document.getElementById("darkOverlay").style.visibility = "visible";
+  document.getElementById("spinner").style.visibility = "visible";
    
     $.ajax({
             type: "POST",
             url: "data_issue_queries.htm",
             success: function(){
-              //alert('hi'); 
+              //alert('hi2'); 
               location.reload(); 
               $("#LoadDiv").show;
           }
-        })       
+        }) 
+  document.getElementById("darkOverlay").style.visibility = "hidden";
+  document.getElementById("spinner").style.visibility = "hidden";      
 }  
   
 function SaveStatus(x,y) {
@@ -259,8 +264,8 @@ function IgnoreStatus(x,y) {
     type =  --type is the alias
       CASE k_tag_issue_type
         WHEN 1  THEN 'No Line Item'
-        WHEN 2 THEN 'Broker has no Agency'
-    WHEN 3 THEN 'App rec outside Agency dates'
+        WHEN 2  THEN 'Broker has no Agency'
+    WHEN 3  THEN 'App rec outside Agency dates'               
         ELSE 'Unknown'
 
         END
@@ -280,6 +285,8 @@ function IgnoreStatus(x,y) {
       WHEN 4 THEN 'No Universal Contract'
       WHEN 5 THEN 'No Agency'
       WHEN 6 THEN 'App Rec Outside Agency'
+          WHEN 7  THEN 'No Group Match'
+          WHEN 8  THEN 'App Rec Outside Universal'
           ELSE 'Unknown'
     END
   ,k_tag_issue_reason
@@ -626,5 +633,29 @@ function IgnoreStatus(x,y) {
   </div>
   <br>
 </cfform>
+
+  <div id="darkOverlay"
+     style="visibility: hidden;
+       position: absolute;
+       left: 0px;
+       top: 0px;
+       display:block;
+       width: 100%;
+       height: 200%;
+       text-align: center;
+       z-index: 9996;
+       background: rgb(0, 0, 0) transparent;
+       /* rgba with 0.6 opacity */
+       background: rgba(0, 0, 0, 0.1);">
+     <center><img id="spinner"
+        style="visibility: hidden;
+        position:fixed;
+        text-align:center;
+        left: 45%;
+        top:40%;
+        display:block;
+        z-index: 9997"
+        src="../images/spinner.gif"/></center>
+  </div>
 <cfset ajaxonload("doScrollTables")>
 <!--- <cfset ajaxonload("makeSortable")> --->
