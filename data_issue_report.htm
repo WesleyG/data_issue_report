@@ -94,7 +94,7 @@ function Clear_Mem() {
  
  <!-- WGG 6/30/2014 need Bryan to look at this --->
  function Click_Refresh() {
-  alert('hi1');
+  //alert('hi1');
   document.getElementById("darkOverlay").style.visibility = "visible";
   document.getElementById("spinner").style.visibility = "visible";
    
@@ -579,10 +579,11 @@ function IgnoreStatus(x,y) {
         <br>
         #issue_reason_name#
             </td>
-            <!--- WGG 2 --->
+            <!--- Date Opened --->
             <td align="center">
               #dateformat(date_opened,"medium")#
             </td>
+      
       <!--- WGG hiding resolved and ignored dates
             <!--- WGG 4 --->
             <td align="center">
@@ -593,7 +594,8 @@ function IgnoreStatus(x,y) {
               #date_ignored#
             </td>
       --->
-            <!--- WGG 6 --->
+
+            <!--- RepID and Name --->
             <td align="center">
               <a href="../call_center_sales/list_brokers.htm?brkid=#k_brk_broker#">
                 #broker_id#
@@ -601,7 +603,8 @@ function IgnoreStatus(x,y) {
               <br>
               #broker_name#
             </td>
-            <!--- WGG 8 --->
+
+            <!--- Contract ID, Con Name & LOB --->
             <td align="center">
               #k_brk_entity_contract#
               <br>
@@ -609,7 +612,8 @@ function IgnoreStatus(x,y) {
         <br>
         #lob_name#
             </td>
-            <!--- WGG 10 --->
+
+            <!--- Member ID --->
             <td align="center">
               <a href="../members/list_member.htm?memid=#pk_mem_member_master#">
                 #member_id#
