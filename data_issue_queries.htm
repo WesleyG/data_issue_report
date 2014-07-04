@@ -594,6 +594,18 @@ INSERT INTO TAG_data_issues
     AND tdi.k_tag_issue_type = 2
     AND w2.application_date between baj2.start_date AND ISNULL(baj2.end_date,'2199-01-01')
 </cfquery>
+
+<cfquery name="q_resolve_team_goal" datasource="#application.sys_ds#">
+UPDATE tdi
+SET tdi.is_resolved = 1
+FROM tag_data_issues tdi
+  LEFT JOIN vw_tea_team_metric_period ttmp
+  ON ttmp.k_tea_team = tdi.k_tea_team
+  AND ttmp.period_start = tdi.team_period_start
+WHERE ttmp.cid = 7 
+  AND ttmp.goal > 0
+  AND ttmp.k_tea_team NOT IN (442, 405)
+</cfquery>
   
 <cfoutput>
   data_issue_queries.htm ran for cid #cid#<br>
