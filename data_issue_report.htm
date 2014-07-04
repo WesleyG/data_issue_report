@@ -641,9 +641,13 @@ function IgnoreStatus(x,y) {
         #team_name#
         <br>
         <cfif k_tag_issue_type EQ 5>
-        #team_period_start#
+          <cfif #team_period_start# NEQ '1900-01-01'>
+            #team_period_start#
+          </cfif>
         <cfelseif k_tag_issue_type EQ 4>
-        #team_period_start#
+          <cfif #team_period_start# NEQ '1900-01-01'>
+            #team_period_start#
+          </cfif>
         </cfif>
             </td>
       </cfif>
