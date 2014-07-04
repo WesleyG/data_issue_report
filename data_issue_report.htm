@@ -27,6 +27,8 @@
   form_ticket_resolved
   form_ticket_type
   form_ticket_reason
+  team_period_start
+  team_name
   ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -175,6 +177,8 @@ function IgnoreStatus(x,y) {
   ,o.name as lob_name
     ,u.name as user_name
     ,issue.time_stamp
+    ,team_period_start
+    ,tm.name as team_name
     FROM dbo.TAG_data_issues issue
     LEFT JOIN TAG_issue_type itype
       on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
@@ -194,6 +198,8 @@ function IgnoreStatus(x,y) {
       on w.k_org_lob = o.pk_org_lob
     LEFT JOIN usr_operator u
       on u.pk_usr_operator = issue.k_usr_operator
+    LEFT JOIN tea_team tm
+      ON tm.pk_tea_team = issue.k_tea_team
   WHERE 1=1
 
     <cfif isdefined('form.form_ticket_status')>
@@ -517,6 +523,15 @@ function IgnoreStatus(x,y) {
             <td align="center">
         Member ID
             </td>
+      
+      <cfif cid EQ 7>
+            <td align="center">
+        Team
+        <br>
+        Period
+            </td>
+      </cfif>
+    
       <td align="center">
         Last Updated By
         <br>
@@ -619,6 +634,19 @@ function IgnoreStatus(x,y) {
                 #member_id#
               </a>
             </td>
+      
+      <cfif cid EQ 7>
+            <!--- Member ID --->
+            <td align="center">
+        #team_name#
+        <br>
+        <cfif k_tag_issue_type EQ 5>
+        #team_period_start#
+        <cfelseif k_tag_issue_type EQ 4>
+        #team_period_start#
+        </cfif>
+            </td>
+      </cfif>
       
       <!--- WGG Last Updated By/Date --->
       <td align="center">
