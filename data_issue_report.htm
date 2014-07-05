@@ -621,7 +621,10 @@ function IgnoreStatus(x,y) {
 
             <!--- Contract ID, Con Name & LOB --->
             <td align="center">
-              #k_brk_entity_contract#
+        <cfif #k_brk_entity_contract# NEQ 0>
+          #k_brk_entity_contract#
+        </cfif>
+              
               <br>
               #name#
         <br>
