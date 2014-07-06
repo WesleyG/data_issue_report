@@ -271,7 +271,9 @@ function IgnoreStatus(x,y) {
       CASE k_tag_issue_type
         WHEN 1  THEN 'No Line Item'
         WHEN 2  THEN 'Broker has no Agency'
-    WHEN 3  THEN 'App rec outside Agency dates'               
+    WHEN 3  THEN 'App rec outside Agency dates' 
+    WHEN 4  THEN 'App rec outside team' 
+    WHEN 5  THEN 'No Goal'                
         ELSE 'Unknown'
 
         END
@@ -293,6 +295,9 @@ function IgnoreStatus(x,y) {
       WHEN 6 THEN 'App Rec Outside Agency'
           WHEN 7  THEN 'No Group Match'
           WHEN 8  THEN 'App Rec Outside Universal'
+      WHEN 9  THEN 'App Rec Outside Team'
+      WHEN 10  THEN 'App Rec Outside Regional Team'
+      WHEN 11  THEN 'No Team Goal'
           ELSE 'Unknown'
     END
   ,k_tag_issue_reason
