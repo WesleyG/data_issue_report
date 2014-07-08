@@ -29,6 +29,7 @@
   form_ticket_reason
   team_period_start
   team_name
+  form_comment
   ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -536,6 +537,10 @@ function IgnoreStatus(x,y) {
             </td>
       </cfif>
     
+            <td align="center">
+        Comment
+            </td>
+          
       <td align="center">
         Last Updated By
         <br>
@@ -661,6 +666,18 @@ function IgnoreStatus(x,y) {
         </cfif>
             </td>
       </cfif>
+      
+      <!--- WGG 7/8/2014 Comment ....
+      <td align="center" style="vertical-align:middle;">
+        <cfoutput><input type="text" id="form_comment" name="form_comment" size="15" value="#form_comment#"></cfoutput>
+      </td>
+      
+      --->
+      <td>
+        <form>
+          <input type="text">
+        </form>
+      </td>
       
       <!--- WGG Last Updated By/Date --->
       <td align="center">
