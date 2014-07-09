@@ -62,7 +62,23 @@
 </cfif>
 --->
 
-
+<!--- WGG 7/9/2014 adding comment --->
+    <div id="CommentDiv" style="float:left; display:none; position:absolute; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:200%; padding:20px;background-color: rgba(0, 0, 0, .7);">
+      <div id="CommentWindow" style="position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:10px 10px 10px 20px; width:800px; left:25%; top:35%">
+        
+        Add Comment
+        <br>
+        <!---
+        <cfoutput><input type="hidden" value="#id#" id="k_ticket" name="k_ticket"></cfoutput>
+        --->
+        <cfoutput><input type="hidden" value="2" id="k_ticket" name="k_ticket"></cfoutput>
+        <textarea rows="5" cols="95" id="comment" name="comment" wrap="hard"></textarea>
+        <br>
+        
+        <button id="SaveComment" onclick="SaveComment()">Save</button>  
+        <button id="HideComment" onclick="HideComment()">Close</button> 
+      </div>
+    </div>
 
 <!--- WGG 6/6/2014 AJAX!! --->
 <script>
@@ -137,7 +153,41 @@ function IgnoreStatus(x,y) {
         }
         })
 }
+
+function comment(x,y) {
+  alert("hi");
+}
+
+function OpenComment() {
+  //alert('test');
+  $("#CommentDiv").show();
+  $("#comment").focus();
+}
+
+function HideComment() {
+   document.getElementById("darkOverlay").style.visibility = "hidden";
+  document.getElementById("spinner").style.visibility = "hidden";
+  $("#CommentDiv").hide();
+}
+
+function SaveComment() {
+  document.getElementById("darkOverlay").style.visibility = "visible";
+  document.getElementById("spinner").style.visibility = "visible";
+  var id = $("#k_ticket").val();
+  var commentID = $("#comment").val();
+    $.ajax({
+           type: "POST",
+           url: "ticket_comment.cfm",
+           data: { id: id, commentID: commentID},
+           success: function(){
+          location.reload(); 
+        }
+        })
+   
+}
 </script> 
+
+
 
 <!--- WGG 6/1/2014 Query to populate page --->
 <cfquery name="q_data_issues" datasource="#application.sys_ds#">
@@ -667,17 +717,12 @@ function IgnoreStatus(x,y) {
             </td>
       </cfif>
       
-      <!--- WGG 7/8/2014 Comment ....
-      <td align="center" style="vertical-align:middle;">
-        <cfoutput><input type="text" id="form_comment" name="form_comment" size="15" value="#form_comment#"></cfoutput>
+      <!--- WGG 7/8/2014 Comment --->
+      <td>
+        <input class="form_submit_button" type="button" value="Create New Comment" name="NewComment" onClick="OpenComment()">
       </td>
       
-      --->
-      <td>
-        <form>
-          <input type="text">
-        </form>
-      </td>
+
       
       <!--- WGG Last Updated By/Date --->
       <td align="center">
