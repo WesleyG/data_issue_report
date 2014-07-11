@@ -30,6 +30,7 @@
   team_period_start
   team_name
   form_comment
+  pk_TAG_data_issues
   ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -71,7 +72,7 @@
         <!---
         <cfoutput><input type="hidden" value="#id#" id="k_ticket" name="k_ticket"></cfoutput>
         --->
-        <cfoutput><input type="hidden" value="2" id="k_ticket" name="k_ticket"></cfoutput>
+        <cfoutput><input type="hidden" value="#pk_TAG_data_issues#" id="k_comment" name="k_comment"></cfoutput>
         <textarea rows="5" cols="95" id="comment" name="comment" wrap="hard"></textarea>
         <br>
         
@@ -113,7 +114,7 @@ function Clear_Mem() {
  
  <!-- WGG 6/30/2014 need Bryan to look at this --->
  function Click_Refresh() {
-  //alert('hi1');
+  
   document.getElementById("darkOverlay").style.visibility = "visible";
   document.getElementById("spinner").style.visibility = "visible";
    
@@ -125,9 +126,11 @@ function Clear_Mem() {
               location.reload(); 
               $("#LoadDiv").show;
           }
-        }) 
-  document.getElementById("darkOverlay").style.visibility = "hidden";
-  document.getElementById("spinner").style.visibility = "hidden";      
+        }) .done(function() {
+        document.getElementById("darkOverlay").style.visibility = "hidden";
+        document.getElementById("spinner").style.visibility = "hidden"; 
+      });
+       
 }  
   
 function SaveStatus(x,y) {
@@ -158,10 +161,11 @@ function comment(x,y) {
   alert("hi");
 }
 
-function OpenComment() {
+function OpenComment(x) {
   //alert('test');
   $("#CommentDiv").show();
   $("#comment").focus();
+  $("#k_comment").val(x);
 }
 
 function HideComment() {
@@ -173,11 +177,11 @@ function HideComment() {
 function SaveComment() {
   document.getElementById("darkOverlay").style.visibility = "visible";
   document.getElementById("spinner").style.visibility = "visible";
-  var id = $("#k_ticket").val();
+  var id = $("#k_comment").val();
   var commentID = $("#comment").val();
     $.ajax({
            type: "POST",
-           url: "ticket_comment.cfm",
+           url: "data_issue_comment.cfm",
            data: { id: id, commentID: commentID},
            success: function(){
           location.reload(); 
@@ -230,6 +234,8 @@ function SaveComment() {
     ,issue.time_stamp
     ,team_period_start
     ,tm.name as team_name
+    ,(SELECT TOP 1 time_stamp FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment_time
+    ,(SELECT TOP 1 left(comment, 50) FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment
     FROM dbo.TAG_data_issues issue
     LEFT JOIN TAG_issue_type itype
       on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
@@ -588,9 +594,17 @@ function SaveComment() {
       </cfif>
     
             <td align="center">
-        Comment
+        Add Comment
+            </td>
+
+            <td align="center">
+        Latest Comment
             </td>
           
+      <td align="center">
+        Latest Comment Date
+            </td>
+            
       <td align="center">
         Last Updated By
         <br>
@@ -718,12 +732,20 @@ function SaveComment() {
       </cfif>
       
       <!--- WGG 7/8/2014 Comment --->
-      <td>
-        <input class="form_submit_button" type="button" value="Create New Comment" name="NewComment" onClick="OpenComment()">
+      <td align="center">
+        <input class="form_submit_button" type="button" value="Add" name="NewComment" onClick="OpenComment(#pk_TAG_data_issues#)">
       </td>
       
 
+      <!--- WGG Last Comment--->
+      <td align="center">
+        #tag_comment#
+      </td>
       
+      <td align="center">
+        #tag_comment_time#
+      </td>
+            
       <!--- WGG Last Updated By/Date --->
       <td align="center">
         #user_name#
