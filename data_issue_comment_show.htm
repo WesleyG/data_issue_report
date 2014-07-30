@@ -1,0 +1,83 @@
+        Comment History -  <button id="HideCommentHistory" onclick="HideCommentHistory()">Close</button>  
+        <br>
+        <!---
+      
+        <cfoutput><input type="hidden" value="#pk_TAG_data_issues#" id="k_comment" name="k_comment"></cfoutput>
+          --->
+        
+        <!---
+        <textarea rows="5" cols="95" id="comment" name="comment" wrap="hard"></textarea>
+        <br>
+        
+        <button id="SaveComment" onclick="SaveComment()">Save</button>  
+        <button id="HideComment" onclick="HideComment()">Close</button> 
+        --->
+        <cfquery name="q_comment_history" datasource="#application.sys_ds#">
+          SELECT k_TAG_data_issues, comment, k_USR_operator_name, user_type, time_stamp
+          FROM tag_issue_comment
+          WHERE k_TAG_data_issues = <cfqueryparam value="#commentid#" cfsqltype="cf_sql_integer">
+          ORDER BY time_stamp DESC
+        </cfquery>
+
+        <!--- ############################################
+    ################## Comment History Header#########
+    ################################################## --->
+      <table id="cpy" class="list_table scrolling" style="width:780px;">
+          <tr class="list_col_hdr">
+      <td align="center" width="150">
+              User
+            </td>
+
+            <td align="center" width="400">
+              Comment
+            </td>
+      
+      <td align="center" width="150">
+        Time Stamp
+            </td>
+
+          </tr>
+    </table>  
+    
+    <!--- ############################################
+    ################## Comment History Values #########
+    ################################################## --->
+          
+    <table id="commentHistTable" class="list_table scrolling" scroll_height="50" width="780px" border=1 height="200px">
+        <cfif q_comment_history.RecordCount EQ 0>
+            <tr class="list_even_odd">
+                  <td align="center" colspan="9">
+              0 Records Returned
+            </td>
+          </tr>
+        </cfif>
+          
+          <cfset toggle = 1>
+              <cfoutput query = "q_comment_history">
+                <cfif toggle gt 0>
+                  <cfset even_odd = "even">
+                <cfelse>
+                  <cfset even_odd = "odd">
+                </cfif>
+                <cfset toggle = toggle*-1>
+          
+      
+                <tr class="list_even_odd">
+                   <td align="center" width="150">
+                    #k_USR_operator_name#
+            </td>
+            
+             <td align="center" width="400">
+                    #comment#
+            </td>
+
+                   <td align="center" width="150">
+                    #time_stamp#
+            </td>
+                </tr>
+              </cfoutput>
+            </table>
+            <br>
+           
+        
+    

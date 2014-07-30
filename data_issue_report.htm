@@ -58,11 +58,11 @@
 
 
 <!--- WGG 6/12/2014 show only not-reviewed rows on page load --->
-<!---
+
 <cfif not isdefined('form.form_ticket_status')>
   <cfset form.form_ticket_status = 0>
 </cfif>
---->
+
 
 <!--- WGG 7/9/2014 adding comment --->
 		<div id="CommentDiv" style="float:left; display:none; position:absolute; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:200%; padding:20px;background-color: rgba(0, 0, 0, .7);">
@@ -83,8 +83,9 @@
 		</div>
 		
 <!--- WGG 7/30/2014 adding comment history --->
+<!--- WGG 7/31/2014 Frank pointed out that a hidden div for every row might be slow down the line --->
 		<div id="CommentHistoryDiv" style="float:left; display:none; position:absolute; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:200%; padding:20px;background-color: rgba(0, 0, 0, .7);">
-			<div id="CommentWindow" style="position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:10px 10px 10px 20px; width:800px; left:25%; top:35%">
+			<div id="CommentWindow2" style="position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:10px 10px 10px 20px; width:800px; left:25%; top:35%">
 				
 				Comment History
 				<br>
@@ -104,9 +105,34 @@
 					SELECT k_TAG_data_issues, comment, k_USR_operator_name, user_type, time_stamp
 					FROM tag_issue_comment
 					WHERE k_TAG_data_issues = 3061
+					ORDER BY time_stamp DESC
 				</cfquery>
-				
-				<table id="cpy" class="list_table scrolling" scroll_height="1500" width=98%>
+
+        <!--- ############################################
+		################## Comment History Header#########
+		################################################## --->
+      <table id="cpy" class="list_table scrolling" scroll_height="1500" style="width:800px;">
+          <tr class="list_col_hdr">
+			<td align="center" width="25">
+              User
+            </td>
+
+            <td align="center" width="25">
+              Comment
+            </td>
+			
+			<td align="center" width="25">
+				Time Stamp
+            </td>
+
+          </tr>
+		</table>	
+		
+		<!--- ############################################
+		################## Comment History Values #########
+		################################################## --->
+					
+				<table id="commentHistTable" class="list_table scrolling" scroll_height="200px" width="800px">
 					<cfif q_comment_history.RecordCount EQ 0>
 			   		<tr class="list_even_odd">
 		            	<td align="center" colspan="9">
@@ -140,6 +166,8 @@
 			          </tr>
 			        </cfoutput>
 			      </table>
+			      <br>
+			      <button id="HideCommentHistory" onclick="HideCommentHistory()">Close</button>	
 			</div>
 		</div>
 
@@ -244,6 +272,11 @@ function HideComment() {
 	$("#CommentDiv").hide();
 }
 
+function HideCommentHistory() {
+	 document.getElementById("darkOverlay").style.visibility = "hidden";
+	document.getElementById("spinner").style.visibility = "hidden";
+	$("#CommentHistoryDiv").hide();
+}
 function SaveComment() {
 	document.getElementById("darkOverlay").style.visibility = "visible";
 	document.getElementById("spinner").style.visibility = "visible";
