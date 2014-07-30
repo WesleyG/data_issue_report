@@ -236,6 +236,7 @@ function SaveComment() {
     ,tm.name as team_name
     ,(SELECT TOP 1 time_stamp FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment_time
     ,(SELECT TOP 1 left(comment, 50) FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment
+    ,(SELECT TOP 1 k_USR_operator_name FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as comment_user
     FROM dbo.TAG_data_issues issue
     LEFT JOIN TAG_issue_type itype
       on issue.k_TAG_issue_type = itype.pk_TAG_issue_type
@@ -382,7 +383,7 @@ function SaveComment() {
       </span>
   
       <table id="cpy" class="list_table scrolling" scroll_height="700" width="100%">
-        <tr class="list_col_hdr">
+    <tr class="list_col_hdr">
           <td align="center">
             Status
           </td>
@@ -390,27 +391,29 @@ function SaveComment() {
             Ignored
           </td>
     
+
+    
           <td align="center">
             Resolved
           </td>
 
-          <td align="center">
+          <td align="center" width="225">
             Issue Type
           </td>
               
-          <td align="center">
+          <td align="center" width="195">
             Issue Reason
           </td>
     
       <td align="center">
       Rep Name
           </td>
-    
-      <td align="center">
+
+    <td align="center">
       Member ID
           </td>
-          
-          <td rowspan="2" width="150" align="center">
+
+          <td rowspan="2" width="125" align="center">
             <input class="form_submit_button" type="submit" value="Search" name="Submit">
       <br><br>
       <button type="button" id="RefreshButton" onclick="Click_Refresh()">Find New Issues</button></button>
@@ -531,30 +534,36 @@ function SaveComment() {
           Data Issues
         </b>
       </span>
+  </div>
+  <div align="left">
         <!--- ############################################
     ################## Data Issue Headers New ############
     ################################################## --->
-      <table id="cpy" class="list_table scrolling" scroll_height="1500" width=100%>
+      <table id="cpy" class="list_table scrolling" scroll_height="1500" style="width:98%;">
           <tr class="list_col_hdr">
-            <td align="center">
+            <td align="center" width="115">
               Status
             </td>
-            <!--- WGG 0 --->
-            <td align="center">
+
+            <td align="center" width="105">
               Ignored
             </td>
-            <!--- WGG 3 --->
+      
+      <td align="center" width="105">
+        Member ID
+            </td>
+
             <td align="center">
               Resolved
             </td>
-            <!--- WGG 3 --->
+
       <td align="center">
         Issue Type
         <br>
         Reason
             </td>
-            <!--- WGG 2 --->
-            <td align="center">
+
+            <td align="center" width="85">
               Date Opened
             </td>
       <!--- WGG
@@ -581,11 +590,9 @@ function SaveComment() {
         <br>
         Line of Business
             </td>
-            <td align="center">
-        Member ID
-            </td>
-      
-      <cfif cid EQ 7>
+
+      <!--- WGG 7/25/2014 testid for client demos, cid 3, was showing an extra column possibly because DB is shared with molina cid 7 --->
+      <cfif (cid EQ 7 OR cid EQ 3)>
             <td align="center">
         Team
         <br>
@@ -593,7 +600,7 @@ function SaveComment() {
             </td>
       </cfif>
     
-            <td align="center">
+            <td align="center" width="85">
         Add Comment
             </td>
 
@@ -601,10 +608,6 @@ function SaveComment() {
         Latest Comment
             </td>
           
-      <td align="center">
-        Latest Comment Date
-            </td>
-            
       <td align="center">
         Last Updated By
         <br>
@@ -616,7 +619,7 @@ function SaveComment() {
         <!--- ############################################
     ################## Data Issue Values #############
     ################################################## --->
-      <table id="cpy" class="list_table scrolling" scroll_height="1500" width=100%>
+      <table id="cpy" class="list_table scrolling" scroll_height="1500" width=98%>
     <cfif q_data_issues.RecordCount EQ 0>
        <tr class="list_even_odd">
             <td align="center" colspan="9">
@@ -636,7 +639,7 @@ function SaveComment() {
     
 
           <tr class="list_even_odd">
-            <td align="center" >
+            <td align="center" width="115">
               <!--- WGG 0 --->
               <select name="status_box" id="status_box" onChange="SaveStatus(this.value,#pk_TAG_data_issues#)">
               <option value="0" 
@@ -647,9 +650,9 @@ function SaveComment() {
               <cfif k_tag_issue_status_id eq '1'>
                 Selected="selected"
               </cfif>
-              >Awaiting Calc</option> 
+              >Reviewed</option> 
             </td>
-            <td align="center" >
+            <td align="center" width="105">
               <!--- WGG 3 --->
               <select name="is_ignored_box" id="is_ignored_box" onChange="IgnoreStatus(this.value,#pk_TAG_data_issues#)">
               <option value="0" 
@@ -662,6 +665,14 @@ function SaveComment() {
               </cfif>
               >Ignored</option> 
             </td>
+      
+      <!--- Member ID --->
+            <td align="center" width="105">
+              <a href="../members/list_member.htm?memid=#pk_mem_member_master#">
+                #member_id#
+              </a>
+            </td>
+      
             <td align="center">
               #is_resolved_word#
             </td>
@@ -671,7 +682,7 @@ function SaveComment() {
         #issue_reason_name#
             </td>
             <!--- Date Opened --->
-            <td align="center">
+            <td align="center" width="85">
               #dateformat(date_opened,"medium")#
             </td>
       
@@ -695,26 +706,20 @@ function SaveComment() {
               #broker_name#
             </td>
 
-            <!--- Contract ID, Con Name & LOB --->
-            <td align="center">
+      <!--- Contract ID, Con Name & LOB --->
+      <td align="center">
         <cfif #k_brk_entity_contract# NEQ 0>
           #k_brk_entity_contract#
         </cfif>
               
               <br>
-              #name#
-        <br>
+        #name#
+        <br>q
         #lob_name#
-            </td>
+      </td>
 
-            <!--- Member ID --->
-            <td align="center">
-              <a href="../members/list_member.htm?memid=#pk_mem_member_master#">
-                #member_id#
-              </a>
-            </td>
-      
-      <cfif cid EQ 7>
+      <!--- WGG 7/25/2014 testid for client demos, cid 3, was showing an extra column possibly because DB is shared with molina cid 7 --->
+      <cfif (cid EQ 7 OR cid EQ 3)>
             <!--- Member ID --->
             <td align="center">
         #team_name#
@@ -732,7 +737,7 @@ function SaveComment() {
       </cfif>
       
       <!--- WGG 7/8/2014 Comment --->
-      <td align="center">
+      <td align="center" width="85">
         <input class="form_submit_button" type="button" value="Add" name="NewComment" onClick="OpenComment(#pk_TAG_data_issues#)">
       </td>
       
@@ -743,14 +748,8 @@ function SaveComment() {
       </td>
       
       <td align="center">
-        #tag_comment_time#
-      </td>
-            
-      <!--- WGG Last Updated By/Date --->
-      <td align="center">
-        #user_name#
-        <br>
-        #time_stamp#
+        #tag_comment_time#<br>
+        #comment_user#<br>
       </td>
           </tr>
         </cfoutput>
@@ -789,4 +788,3 @@ function SaveComment() {
   </div>
 <cfset ajaxonload("doScrollTables")>
 <!--- <cfset ajaxonload("makeSortable")> --->
-<!--- WGG accidentally had date commit as friday instead of thurs, fixed --->

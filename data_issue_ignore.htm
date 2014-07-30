@@ -6,3 +6,35 @@
 	WHERE 
 		TAG_data_issues.pk_TAG_data_issues = #ID#
 </cfquery>
+
+<!--- WGG 7/29/2014 added status tracking to comments --->
+<cfquery name="sel_hca_user" datasource="#application.sys_ds#">
+	SELECT LEFT(login_id,3) as login_name, login_id as comment_name
+	FROM USR_operator
+	where pk_USR_operator = #session.login.K_USR_operator#
+</cfquery>
+
+
+<cfif sel_hca_user.login_name EQ 'hca'>
+	<cfset u_type = 1>
+<cfelse>
+	<cfset u_type = 0>
+</cfif>
+
+<cfquery name="q_sel_type" datasource="#application.sys_ds#">
+	INSERT INTO tag_issue_comment
+		(k_TAG_data_issues
+		,comment
+		,k_USR_operator
+		,time_stamp
+		,k_USR_operator_name)
+	VALUES
+		(#id#
+		,'Issue updated to 
+			<cfif #sID# EQ 0>Not Ignored
+			<cfelseif #sID# EQ 1>Ignored
+			<cfelse>#sID#</cfif>'
+		,#session.login.K_USR_operator#
+		,GETDATE()
+		,'#sel_hca_user.comment_name#')
+</cfquery>
