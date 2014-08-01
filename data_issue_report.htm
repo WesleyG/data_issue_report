@@ -56,12 +56,20 @@
 
 </cfif>
 
-
-<!--- WGG 6/12/2014 show only not-reviewed rows on page load --->
-
+<!--- WGG 7/31/2014 I decided that users would want to see reviewed issues that
+	are both not ignored and not resolved because they have reviewed it but
+	it is still an issue.
+<!--- WGG 7/31/2014 show only not-reviewed rows on page load --->
 <cfif not isdefined('form.form_ticket_status')>
   <cfset form.form_ticket_status = 0>
 </cfif>
+--->
+
+<!--- WGG 7/31/2014 show only resolved rows on page load --->
+<cfif not isdefined('form.form_ticket_resolved')>
+  <cfset form.form_ticket_resolved = 0>
+</cfif>
+
 
 
 <!--- WGG 7/9/2014 adding comment --->
@@ -83,91 +91,11 @@
 		</div>
 		
 <!--- WGG 7/30/2014 adding comment history --->
-<!--- WGG 7/31/2014 Frank pointed out that a hidden div for every row might be slow down the line --->
 		<div id="CommentHistoryDiv" style="float:left; display:none; position:absolute; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:200%; padding:20px;background-color: rgba(0, 0, 0, .7);">
-			<div id="CommentWindow2" style="position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:10px 10px 10px 20px; width:800px; left:25%; top:35%">
+			<div id="CommentWindow2" style="height: 500px; overflow: auto; position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:10px 10px 10px 20px; width:800px; left:25%; top:35% bottom:15%;">
 				
-				Comment History
-				<br>
-				<!---
-			
-				<cfoutput><input type="hidden" value="#pk_TAG_data_issues#" id="k_comment" name="k_comment"></cfoutput>
-					--->
-				
-				<!---
-				<textarea rows="5" cols="95" id="comment" name="comment" wrap="hard"></textarea>
-				<br>
-				
-				<button id="SaveComment" onclick="SaveComment()">Save</button>	
-				<button id="HideComment" onclick="HideComment()">Close</button>	
-				--->
-				<cfquery name="q_comment_history" datasource="#application.sys_ds#">
-					SELECT k_TAG_data_issues, comment, k_USR_operator_name, user_type, time_stamp
-					FROM tag_issue_comment
-					WHERE k_TAG_data_issues = 3061
-					ORDER BY time_stamp DESC
-				</cfquery>
+				<span style="height:100px;"id="comment_text"></span>
 
-        <!--- ############################################
-		################## Comment History Header#########
-		################################################## --->
-      <table id="cpy" class="list_table scrolling" scroll_height="1500" style="width:800px;">
-          <tr class="list_col_hdr">
-			<td align="center" width="25">
-              User
-            </td>
-
-            <td align="center" width="25">
-              Comment
-            </td>
-			
-			<td align="center" width="25">
-				Time Stamp
-            </td>
-
-          </tr>
-		</table>	
-		
-		<!--- ############################################
-		################## Comment History Values #########
-		################################################## --->
-					
-				<table id="commentHistTable" class="list_table scrolling" scroll_height="200px" width="800px">
-					<cfif q_comment_history.RecordCount EQ 0>
-			   		<tr class="list_even_odd">
-		            	<td align="center" colspan="9">
-							0 Records Returned
-						</td>
-					</tr>
-				</cfif>
-					
-					<cfset toggle = 1>
-			        <cfoutput query = "q_comment_history">
-			          <cfif toggle gt 0>
-			            <cfset even_odd = "even">
-			          <cfelse>
-			            <cfset even_odd = "odd">
-			          </cfif>
-			          <cfset toggle = toggle*-1>
-					
-			
-			          <tr class="list_even_odd">
-			             <td align="center" width="25">
-				            #k_USR_operator_name#
-						</td>
-						
-						 <td align="center" width="25">
-				            #comment#
-						</td>
-
-			             <td align="center" width="25">
-				            #time_stamp#
-						</td>
-			          </tr>
-			        </cfoutput>
-			      </table>
-			      <br>
-			      <button id="HideCommentHistory" onclick="HideCommentHistory()">Close</button>	
 			</div>
 		</div>
 
@@ -263,7 +191,17 @@ function CommentHistory(x) {
 	//alert('test');
 	$("#CommentHistoryDiv").show();
 	$("#comment").focus();
-	$("#k_comment").val(x);
+	//$("#k_comment").val(x);
+
+  	$.ajax({
+           type: "POST",
+           url: "data_issue_comment_show.htm",
+           data: { commentID: x},
+          	success: function(data){
+   				$('#comment_text').html(data);
+  			}
+  			
+        })
 }
 
 function HideComment() {
@@ -364,7 +302,7 @@ function SaveComment() {
   WHERE 1=1
 	AND issue.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
     <cfif isdefined('form.form_ticket_status')>
-      AND k_tag_issue_status_id IN (<cfqueryparam value="#form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
+      AND k_tag_issue_status_id IN (<cfqueryparam value="#form.form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif> 
 
     <cfif isdefined('form.form_ticket_ignored') AND len('form.form_ticket_ignored')>
@@ -619,9 +557,26 @@ function SaveComment() {
               Clear
             </button>
           </td>	
-		
+        <tr class="list_even_odd">
+          <td align="center">
+            Date
+          </td>
         </tr>
-      </table>
+		<tr class="list_even_odd">
+				<td class="form_field_entry" align="right">
+					From:
+					<cfset drop_name="start_month">
+					<cfset drop_list="drop_months"><cfset block_clear="yes"><cfinclude template = "../dropdowns/dropdown.htm">
+					<cfset drop_name="start_year">
+					<cfset drop_list="drop_years"><cfset block_clear="yes"><cfinclude template = "../dropdowns/dropdown.htm">
+					To:
+					<cfset drop_name="end_month">
+					<cfset drop_list="drop_months"><cfset block_clear="yes"><cfinclude template = "../dropdowns/dropdown.htm">
+					<cfset drop_name="end_year">
+					<cfset drop_list="drop_years"><cfset block_clear="yes"><cfinclude template = "../dropdowns/dropdown.htm">
+				</td>
+			</tr>
+		</table>
     </div>
   </div>
   <br>
@@ -892,4 +847,5 @@ function SaveComment() {
 		 	  src="../images/spinner.gif"/></center>
 	</div>
 <cfset ajaxonload("doScrollTables")>
+<cfset ajaxonload("makeSortable")>
 <!--- <cfset ajaxonload("makeSortable")> --->
