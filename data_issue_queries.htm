@@ -321,10 +321,18 @@ INSERT INTO TAG_data_issues
   ,ttmp.k_tea_team
   ,ttmp.period_start
   FROM vw_tea_team_metric_period ttmp
+  <!--- WGG 8/5/2014 NEED TO ADD SOMETHING LIKE THIS TO NOT INSERT DUPLICATES --->
+    LEFT JOIN TAG_data_issues
+    ON TAG_data_issues.k_tea_team = ttmp.k_tea_team
+      AND TAG_data_issues.team_period_start = ttmp.period_start
+      AND TAG_data_issues.k_tag_issue_type = 5
+  <!--- WGG 8/5/2014 END TEST --->
   WHERE ttmp.cid = 7 
   AND ttmp.period_start BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()
   AND ttmp.goal < 1
   AND ttmp.k_tea_team NOT IN (442, 405)   -- ignore captive sales rep lead and inside sales
+  <!--- WGG 8/ along with the LEFT JOIN prevents duplicates from being inserted --->
+  AND TAG_data_issues.pk_TAG_data_issues IS NULL
 
 </cfquery>
 </cfif>
