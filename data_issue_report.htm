@@ -24,6 +24,7 @@
   form_broker_name
   form_broker_id
   form_mem_id
+  form_rep_id
   form_ticket_resolved
   form_ticket_type
   form_ticket_reason
@@ -129,6 +130,10 @@ function Clear_Name() {
 
 function Clear_Mem() {
   $("#form_mem_id").val("");
+}  
+
+function Clear_RepID() {
+  $("#form_rep_id").val("");
 }  
  
 <!--- WGG 8/7/2014 adding clear internal button --->
@@ -349,7 +354,11 @@ function SaveComment() {
         AND m.member_id LIKE (<cfqueryparam value="%#form.form_mem_id#%" cfsqltype="cf_sql_varchar"/>)
     </cfif>
   
-
+  <!--- WGG 8/8/2014 RepID search --->
+  <cfif isdefined('form.form_rep_id') AND len(form.form_rep_id)>
+        AND b.broker_id = (<cfqueryparam value="#form.form_rep_id#" cfsqltype="cf_sql_varchar"/>)
+    </cfif>
+  
   <cfif isdefined('form.form_internal') AND len(form.form_internal)>
         AND (bt.internal_external IN (<cfqueryparam value="#form.form_internal#" cfsqltype="cf_sql_integer" list="true"/>)
   
@@ -495,7 +504,7 @@ function SaveComment() {
           </td>
     
       <td align="center">
-      Rep Name
+      Rep Search
           </td>
 
     <td align="center">
@@ -587,13 +596,25 @@ function SaveComment() {
           </td>
     
           <td align="center" style="vertical-align:middle;">
-            <cfoutput><input type="text" id="form_broker_name" name="form_broker_name" size="15" value="#form_broker_name#"></cfoutput>
+            <cfoutput>
+        <input type="text" id="form_broker_name" name="form_broker_name" size="15" value="#form_broker_name#">
+        <br>
+        Rep Name
+        <button type="button" id="StatusSub" onclick="Clear_Name()">
+          Clear
+        </button>
+        <br>
+        <br>    
+        <input type="text" id="form_rep_id" name="form_rep_id" size="15" value="#form_rep_id#">
+        <br>
+        Rep ID
+        <button type="button" id="StatusSub" onclick="Clear_RepID()">
+          Clear
+        </button>
+      </cfoutput>
             <br>
             <br>
-            <br>
-            <button type="button" id="StatusSub" onclick="Clear_Name()">
-              Clear
-            </button>
+  
           </td>
 
           <td align="center" style="vertical-align:middle;">
