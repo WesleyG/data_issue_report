@@ -32,6 +32,7 @@
   form_comment
   pk_TAG_data_issues
   k_TAG_data_issues
+  form_internal
   ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -129,6 +130,11 @@ function Clear_Name() {
 function Clear_Mem() {
   $("#form_mem_id").val("");
 }  
+ 
+<!--- WGG 8/7/2014 adding clear internal button --->
+function Clear_Internal() {
+  $("#form_internal").val("");
+}
  
  <!-- WGG 6/30/2014 need Bryan to look at this --->
  function Click_Refresh() {
@@ -275,7 +281,15 @@ function SaveComment() {
     ,issue.time_stamp
     ,team_period_start
     ,tm.name as team_name
+    <cfif cid EQ 7>
     ,bt.internal_external
+    ,CASE bt.internal_external
+      WHEN 0 THEN 'Broker'
+      WHEN 1 THEN 'Captive'
+      ELSE 'Unknown'
+      END
+            AS internal_external_text
+    </cfif>
     ,(SELECT TOP 1 time_stamp FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment_time
     ,(SELECT TOP 1 left(comment, 50) FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment
     ,(SELECT TOP 1 k_USR_operator_name FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as comment_user
@@ -302,11 +316,8 @@ function SaveComment() {
     LEFT JOIN tea_team tm
       ON tm.pk_tea_team = issue.k_tea_team
     <cfif cid EQ 7>
-    LEFT JOIN BRK_broker_type_history bth
-      ON bth.k_brk_broker = w.k_brk_broker
-        AND w.start_date BETWEEN bth.start_date AND bth.end_date
     LEFT JOIN BRK_broker_type bt
-      ON bt.pk_BRK_broker_type = bth.k_BRK_broker_type
+      ON bt.pk_BRK_broker_type = w.k_BRK_broker_type__enrolled
     </cfif>
   WHERE 1=1
   AND issue.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
@@ -338,10 +349,20 @@ function SaveComment() {
         AND m.member_id LIKE (<cfqueryparam value="%#form.form_mem_id#%" cfsqltype="cf_sql_varchar"/>)
     </cfif>
   
+
+  <cfif isdefined('form.form_internal') AND len(form.form_internal)>
+        AND (bt.internal_external IN (<cfqueryparam value="#form.form_internal#" cfsqltype="cf_sql_integer" list="true"/>)
+  
+    <cfif isdefined('form.form_internal') AND form.form_internal EQ 2>
+        OR bt.internal_external IS NULL
+      </cfif>
+    )
+    </cfif>
+  
+
   ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
 
 </cfquery>
-
 
 <cfquery name="q_sel_status" datasource="#application.sys_ds#">
   SELECT *
@@ -414,6 +435,21 @@ function SaveComment() {
   FROM tag_data_issues
   GROUP BY k_tag_issue_reason
 </cfquery>
+
+<cfif cid EQ 7>
+<cfquery name="q_sel_internal" datasource="#application.sys_ds#">
+  SELECT 
+    internal =  --ignored is the alias
+    CASE bt.internal_external
+      WHEN 0  THEN 'Broker'
+      WHEN 1 THEN 'Captive'
+      ELSE 'Unknown'
+    END
+    ,CAST(bt.internal_external as INT) as int_ext_val
+  FROM BRK_broker_type bt
+  GROUP BY bt.internal_external
+</cfquery>
+</cfif>
 
   <!--- ############################################################################
   ################################# Data Issue Search ##############################
@@ -571,17 +607,22 @@ function SaveComment() {
           </td> 
       
     <tr class="list_even_odd">
+      <!--- WGG 8/7/2013 Date search, not live yet 
       <td align="center">
         Date
       </td>
-
+      --->
+      
+      <!--- Internal/External Agent search --->
       <cfif cid EQ 7>
       <td align="center">
         Internal/External
       </td>
       </cfif>
         </tr>
-    <tr class="list_even_odd">
+
+    <tr class="list_even_odd">    
+    <!--- WGG 8/7/2014 Date search, not live yet
       <td class="form_field_entry" align="right">
         From:
         <cfset drop_name="start_month">
@@ -595,19 +636,24 @@ function SaveComment() {
         <cfset drop_name="end_year">
         <cfset drop_list="drop_years"><cfset block_clear="yes"><cfinclude template = "../dropdowns/dropdown.htm">
       </td>
-
+      --->
+      
+      <!--- WGG 8/7/2014 Select internal vs external --->
       <cfif cid EQ 7>     
       <td align="center">
-        <cfselect query="q_sel_ignored" 
-          id="form_ticket_ignore"
-          value="is_ignored" 
-          display="ignored" 
-          name="form_ticket_ignored" 
-          selected="#form_ticket_ignored#" 
+        <cfselect query="q_sel_internal" 
+          id="form_internal"
+          value="int_ext_val" 
+          display="internal" 
+          name="form_internal" 
+          selected="#form_internal#" 
           multiple="yes" 
+          queryPosition="Below"
           size="3">
+          <option value="2"<cfif isdefined('form.form_internal') AND form_internal EQ 2>selected</cfif>>Unknown</option>
         </cfselect><br><br>
-          <button type="button" id="StatusSub" onclick="Clear_Ignored()">
+          <!--- WGG 8/7/2014 should not be clear ignored --->
+          <button type="button" id="Internal" onclick="Clear_Internal()">
             Clear
           </button>
       </td>
