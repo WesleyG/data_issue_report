@@ -196,8 +196,12 @@ WGG --->
       AND NOT (
         w.k_brk_entity_contract IS NULL 
         OR bec.name like '%Captive%')
+    <!--- WGG 8/8/2014 the below was not working as it was returning Juanita woods for member Shawler
+        because it wasn't checking the rep type as of the enrollment window...
       <!--- WGG 7/1/2014 Molina - rep is not an independent agent - they do not have an agency --->
       AND (bth.k_BRK_broker_type IS NULL OR bth.k_BRK_broker_type <> '3955')    
+    --->
+      AND (w.k_brk_broker_type__enrolled IS NULL OR w.k_brk_broker_type__enrolled <> '3955')
     </cfif>
   </cfquery>
 </cfif>
@@ -288,6 +292,9 @@ WGG --->
 </cfif>
 
 <cfif cid EQ 7>
+<!--- WGG 8/9/2014 per call with Eliz, this should not be checked for teams:
+  All Regions, West Region, East Region, IL & Broker IL
+--->
 <cfquery name="q_pop_no_team_goals" datasource="#application.sys_ds#">
 /* team has no goals */
 
@@ -308,7 +315,7 @@ INSERT INTO TAG_data_issues
 
   SELECT DISTINCT
      7 -- cid
-    ,5 -- issues type: app rec outside team
+    ,5 -- issues type: no team goals
     ,11 -- no team goal
     ,0 -- not ignored
     ,GETDATE() -- date opened
@@ -330,7 +337,7 @@ INSERT INTO TAG_data_issues
   WHERE ttmp.cid = 7 
   AND ttmp.period_start BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()
   AND ttmp.goal < 1
-  AND ttmp.k_tea_team NOT IN (442, 405)   -- ignore captive sales rep lead and inside sales
+  AND ttmp.k_tea_team NOT IN (442, 405,17,393,394,449,450)   -- ignore captive sales rep lead, inside sales, All Regions, West Region, East Region,IL & Broker IL
   <!--- WGG 8/ along with the LEFT JOIN prevents duplicates from being inserted --->
   AND TAG_data_issues.pk_TAG_data_issues IS NULL
 
