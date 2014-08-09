@@ -250,56 +250,58 @@ function SaveComment() {
   SELECT issue.pk_TAG_data_issues
     ,issue.k_TAG_issue_status
     ,s.issue_status_name
-        ,issue.cid
-        ,issue.k_tag_issue_type
-        ,itype.issue_type_name
-        ,issue.k_tag_issue_reason
-        ,ireason.issue_reason_name
-        ,issue.is_ignored
-        ,CASE issue.is_ignored
-            WHEN 0 THEN 'Not Ignored'
-            WHEN 1 THEN 'Ignored'
-            END
-            AS is_ignored_word
-        ,issue.date_opened
-        ,issue.date_closed
-        ,issue.date_ignored
-        ,issue.is_resolved
-        ,CASE issue.is_resolved
-            WHEN 0 THEN 'Not Resolved'
-            WHEN 1 THEN 'Resolved'
-            END
-            AS is_resolved_word
-        ,issue.date_resolved
-        ,issue.k_brk_broker
-        ,issue.k_mem_member_master
-        ,m.member_id
+    ,issue.cid
+    ,issue.k_tag_issue_type
+    ,itype.issue_type_name
+    ,issue.k_tag_issue_reason
+    ,ireason.issue_reason_name
+    ,issue.is_ignored
+    ,CASE issue.is_ignored
+      WHEN 0 THEN 'Not Ignored'
+      WHEN 1 THEN 'Ignored'
+      END
+      AS is_ignored_word
+    ,issue.date_opened
+    ,issue.date_closed
+    ,issue.date_ignored
+    ,issue.is_resolved
+    ,CASE issue.is_resolved
+      WHEN 0 THEN 'Not Resolved'
+      WHEN 1 THEN 'Resolved'
+      END
+      AS is_resolved_word
+    ,issue.date_resolved
+    ,issue.k_brk_broker
+    ,issue.k_mem_member_master
+    ,m.member_id
+    ,m.first_name
+    ,m.last_name
     ,m.pk_mem_member_master
-        ,issue.k_mem_membership_window
-        ,issue.k_brk_entity_contract
-        ,b.broker_id
-        ,b.name AS broker_name
-        ,c.name
+    ,issue.k_mem_membership_window
+    ,issue.k_brk_entity_contract
+    ,b.broker_id
+    ,b.name AS broker_name
+    ,c.name
     ,issue.k_tag_issue_status_id
-  ,o.name as lob_name
+    ,o.name as lob_name
     ,u.name as user_name
     ,issue.time_stamp
     ,team_period_start
     ,tm.name as team_name
     <cfif cid EQ 7>
-    ,bt.internal_external
-    ,CASE bt.internal_external
-      WHEN 0 THEN 'Broker'
-      WHEN 1 THEN 'Captive'
-      ELSE 'Unknown'
-      END
-            AS internal_external_text
+      ,bt.internal_external
+      ,CASE bt.internal_external
+        WHEN 0 THEN 'Broker'
+        WHEN 1 THEN 'Captive'
+        ELSE 'Unknown'
+        END
+        AS internal_external_text
     </cfif>
     ,(SELECT TOP 1 time_stamp FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment_time
     ,(SELECT TOP 1 left(comment, 50) FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment
     ,(SELECT TOP 1 k_USR_operator_name FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as comment_user
 
-    FROM dbo.TAG_data_issues issue
+  FROM dbo.TAG_data_issues issue
     LEFT JOIN TAG_issue_type itype
       ON issue.k_TAG_issue_type = itype.pk_TAG_issue_type
     LEFT JOIN TAG_issue_reason ireason
@@ -325,7 +327,8 @@ function SaveComment() {
       ON bt.pk_BRK_broker_type = w.k_BRK_broker_type__enrolled
     </cfif>
   WHERE 1=1
-  AND issue.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+    AND issue.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+    
     <cfif isdefined('form.form_ticket_status')>
       AND k_tag_issue_status_id IN (<cfqueryparam value="#form.form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif> 
@@ -338,39 +341,37 @@ function SaveComment() {
       AND is_resolved IN (<cfqueryparam value="#form.form_ticket_resolved#" cfsqltype="cf_sql_integer" list="true"/>)
     </cfif>   
 
-  <cfif isdefined('form.form_ticket_type') AND len('form.form_ticket_type')>
-    AND k_tag_issue_type IN (<cfqueryparam value="#form.form_ticket_type#" cfsqltype="cf_sql_integer" list="true"/>)
-  </cfif> 
-  
-  <cfif isdefined('form.form_ticket_reason') AND len('form.form_ticket_reason')>
-    AND k_tag_issue_reason IN (<cfqueryparam value="#form.form_ticket_reason#" cfsqltype="cf_sql_integer" list="true"/>)
-  </cfif> 
+    <cfif isdefined('form.form_ticket_type') AND len('form.form_ticket_type')>
+      AND k_tag_issue_type IN (<cfqueryparam value="#form.form_ticket_type#" cfsqltype="cf_sql_integer" list="true"/>)
+    </cfif>
+
+    <cfif isdefined('form.form_ticket_reason') AND len('form.form_ticket_reason')>
+      AND k_tag_issue_reason IN (<cfqueryparam value="#form.form_ticket_reason#" cfsqltype="cf_sql_integer" list="true"/>)
+    </cfif> 
 
     <cfif isdefined('form.form_broker_name') AND len(form.form_broker_name)>
-        AND b.name LIKE (<cfqueryparam value="%#form.form_broker_name#%" cfsqltype="cf_sql_varchar"/>)
+      AND b.name LIKE (<cfqueryparam value="%#form.form_broker_name#%" cfsqltype="cf_sql_varchar"/>)
     </cfif>
-  
-  <cfif isdefined('form.form_mem_id') AND len(form.form_mem_id)>
-        AND m.member_id LIKE (<cfqueryparam value="%#form.form_mem_id#%" cfsqltype="cf_sql_varchar"/>)
-    </cfif>
-  
-  <!--- WGG 8/8/2014 RepID search --->
-  <cfif isdefined('form.form_rep_id') AND len(form.form_rep_id)>
-        AND b.broker_id = (<cfqueryparam value="#form.form_rep_id#" cfsqltype="cf_sql_varchar"/>)
-    </cfif>
-  
-  <cfif isdefined('form.form_internal') AND len(form.form_internal)>
-        AND (bt.internal_external IN (<cfqueryparam value="#form.form_internal#" cfsqltype="cf_sql_integer" list="true"/>)
-  
-    <cfif isdefined('form.form_internal') AND form.form_internal EQ 2>
-        OR bt.internal_external IS NULL
-      </cfif>
-    )
-    </cfif>
-  
 
+    <cfif isdefined('form.form_mem_id') AND len(form.form_mem_id)>
+      AND m.member_id LIKE (<cfqueryparam value="%#form.form_mem_id#%" cfsqltype="cf_sql_varchar"/>)
+    </cfif>
+
+    <!--- WGG 8/8/2014 RepID search --->
+    <cfif isdefined('form.form_rep_id') AND len(form.form_rep_id)>
+      AND b.broker_id = (<cfqueryparam value="#form.form_rep_id#" cfsqltype="cf_sql_varchar"/>)
+    </cfif>
+
+    <cfif isdefined('form.form_internal') AND len(form.form_internal)>
+      AND (
+        bt.internal_external IN (<cfqueryparam value="#form.form_internal#" cfsqltype="cf_sql_integer" list="true"/>)
+        <cfif isdefined('form.form_internal') AND form.form_internal EQ 2>
+          OR bt.internal_external IS NULL
+        </cfif>
+      )
+    </cfif>
+  
   ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
-
 </cfquery>
 
 <cfquery name="q_sel_status" datasource="#application.sys_ds#">
@@ -508,7 +509,7 @@ function SaveComment() {
           </td>
 
     <td align="center">
-      Member ID
+      Member Search
           </td>
 
           <td rowspan="2" width="125" align="center">
@@ -829,11 +830,15 @@ function SaveComment() {
             </td>
       
       <!--- Member ID --->
-            <td align="center" width="105">
-              <a href="../members/list_member.htm?memid=#pk_mem_member_master#">
-                #member_id#
-              </a>
-            </td>
+      <td align="center" width="105">
+        <a href="../members/list_member.htm?memid=#pk_mem_member_master#">
+          #member_id#
+        </a>
+        
+        <!--- WGG 8/9/2014 Add member name --->
+        <br>
+        #first_name# #last_name#
+      </td>
       
             <td align="center">
               #is_resolved_word#
