@@ -133,6 +133,10 @@ function Clear_Mem() {
   $("#form_mem_id").val("");
 }  
 
+function Clear_Mem_Name() {
+  $("#form_member_name").val("");
+}   
+
 function Clear_RepID() {
   $("#form_rep_id").val("");
 }  
@@ -605,10 +609,11 @@ function SaveComment() {
     <!--- WGG 8/9/2014 Rep Search --->
           <td align="center" style="vertical-align:middle;">
             <cfoutput>
+        <br>
         <input type="text" id="form_broker_name" name="form_broker_name" size="15" value="#form_broker_name#">
         <br>
         Rep Name
-        <button type="button" id="StatusSub" onclick="Clear_Name()">
+        <button type="button" id="StatusSub" onclick="Clear_Mem_Name()">
           Clear
         </button>
         <br>
@@ -628,11 +633,11 @@ function SaveComment() {
     <!--- WGG 8/9/2014 Member Search --->
     <td align="center" style="vertical-align:middle;">
       <cfoutput>
-        <br> <!--- WGG 8/9/2014 this is needed at the moment to line up fields --->
+       <!--- WGG 8/9/2014 this is needed at the moment to line up fields --->
         <input type="text" id="form_member_name" name="form_member_name" size="15" value="#form_member_name#">
         <br>
         Last Name
-        <button type="button" id="StatusSub" onclick="Clear_Name()">
+        <button type="button" id="StatusSub" onclick="Clear_Mem_Name()">
         Clear
         </button>
         <br>
@@ -640,9 +645,7 @@ function SaveComment() {
                 
         <!--- WGG 8/9/2014 Member ID --->
         <input type="text" id="form_mem_id" name="form_mem_id" size="15" value="#form_mem_id#"></cfoutput>
-        <br>
-        <br>
-        <br>
+        Member ID
         <button type="button" id="StatusSub" onclick="Clear_Mem()">
         Clear
       </button>
