@@ -35,6 +35,8 @@
   pk_TAG_data_issues
   k_TAG_data_issues
   form_internal
+  date_from
+  date_to
   ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -145,7 +147,13 @@ function Clear_RepID() {
 function Clear_Internal() {
   $("#form_internal").val("");
 }
- 
+
+<!--- WGG 8/7/2014 adding clear internal button --->
+function Clear_Date() {
+  $("#date_from").val("");
+  $("#date_to").val("");
+}
+
  <!-- WGG 6/30/2014 need Bryan to look at this --->
  function Click_Refresh() {
   
@@ -372,6 +380,7 @@ function SaveComment() {
       AND m.last_name LIKE (<cfqueryparam value="%#form.form_member_name#%" cfsqltype="cf_sql_varchar"/>)
     </cfif>
     
+
     <cfif isdefined('form.form_internal') AND len(form.form_internal)>
       AND (
         bt.internal_external IN (<cfqueryparam value="#form.form_internal#" cfsqltype="cf_sql_integer" list="true"/>)
@@ -380,7 +389,17 @@ function SaveComment() {
         </cfif>
       )
     </cfif>
-  
+
+    <!--- WGG 8/10/2014 test of date search --->
+    <cfif cid EQ 5>   
+        <cfif isdefined('form.date_from') AND len(form.date_from)>
+          AND issue.date_opened >= <cfqueryparam value="#date_from#" cfsqltype="cf_sql_date"/>
+        </cfif>   
+    
+        <cfif isdefined('form.date_to') AND len(form.date_to)>
+          AND issue.date_opened <= <cfqueryparam value="#date_to#" cfsqltype="cf_sql_date"/>
+        </cfif>     
+    </cfif>
   ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
 </cfquery>
 
@@ -652,11 +671,12 @@ function SaveComment() {
     </td> 
       
     <tr class="list_even_odd">
-      <!--- WGG 8/7/2013 Date search, not live yet 
+      <!--- WGG 8/10/2014 testing date search --->
+      <cfif cid EQ 5>
       <td align="center">
         Date
       </td>
-      --->
+      </cfif>
       
       <!--- Internal/External Agent search --->
       <cfif cid EQ 7>
@@ -667,22 +687,24 @@ function SaveComment() {
         </tr>
 
     <tr class="list_even_odd">    
-    <!--- WGG 8/7/2014 Date search, not live yet
-      <td class="form_field_entry" align="right">
-        From:
-        <cfset drop_name="start_month">
-        <cfset drop_list="drop_months"><cfset block_clear="yes"><cfinclude template = "../dropdowns/dropdown.htm">
-        <cfset drop_name="start_year">
-        <cfset drop_list="drop_years"><cfset block_clear="yes"><cfinclude template = "../dropdowns/dropdown.htm">
-        <br>
-        To:
-        <cfset drop_name="end_month">
-        <cfset drop_list="drop_months"><cfset block_clear="yes"><cfinclude template = "../dropdowns/dropdown.htm">
-        <cfset drop_name="end_year">
-        <cfset drop_list="drop_years"><cfset block_clear="yes"><cfinclude template = "../dropdowns/dropdown.htm">
-      </td>
+    <!--- WGG 8/10/2014 testing date search --->
+    <cfif cid EQ 5>
+      <td align="left">
+        <cfinput type="text" size="10" name="date_from" value="#dateFormat(date_from,date_mask)#"> (From)
+        <cfinput type="text" size="10" name="date_to" value="#dateFormat(date_to,date_mask)#"> (To)
+        
+      <p align="center"><button type="button" id="Date_Clear" onclick="Clear_Date()">
+        Clear
+      </button>
+      </p>
+      <!--- WGG 8/10/2014 how you can see what is output from these drop downs
+      <cfoutput>#date_from# #date_to#</cfoutput>
       --->
       
+      </td>
+
+
+    </cfif>     
       <!--- WGG 8/7/2014 Select internal vs external --->
       <cfif cid EQ 7>     
       <td align="center">
@@ -754,7 +776,7 @@ function SaveComment() {
             </td>
 
             <td align="center" width="85">
-              Date Opened
+              Date Found
             </td>
       <!--- WGG
             <!--- WGG 4 --->
@@ -879,7 +901,7 @@ function SaveComment() {
         <br>
         #issue_reason_name#
             </td>
-            <!--- Date Opened --->
+            <!--- Date Found --->
             <td align="center" width="85">
               #dateformat(date_opened,"medium")#
             </td>
