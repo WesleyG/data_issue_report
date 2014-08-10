@@ -23,6 +23,7 @@
   form_ticket_ignored
   form_broker_name
   form_broker_id
+  form_member_name
   form_mem_id
   form_rep_id
   form_ticket_resolved
@@ -362,6 +363,11 @@ function SaveComment() {
       AND b.broker_id = (<cfqueryparam value="#form.form_rep_id#" cfsqltype="cf_sql_varchar"/>)
     </cfif>
 
+    <!--- WGG 8/9/2014 Member Name search --->
+    <cfif isdefined('form.form_member_name') AND len(form.form_member_name)>
+      AND m.last_name LIKE (<cfqueryparam value="%#form.form_member_name#%" cfsqltype="cf_sql_varchar"/>)
+    </cfif>
+    
     <cfif isdefined('form.form_internal') AND len(form.form_internal)>
       AND (
         bt.internal_external IN (<cfqueryparam value="#form.form_internal#" cfsqltype="cf_sql_integer" list="true"/>)
@@ -596,6 +602,7 @@ function SaveComment() {
             </button>
           </td>
     
+    <!--- WGG 8/9/2014 Rep Search --->
           <td align="center" style="vertical-align:middle;">
             <cfoutput>
         <input type="text" id="form_broker_name" name="form_broker_name" size="15" value="#form_broker_name#">
@@ -618,15 +625,28 @@ function SaveComment() {
   
           </td>
 
-          <td align="center" style="vertical-align:middle;">
-            <cfoutput><input type="text" id="form_mem_id" name="form_mem_id" size="15" value="#form_mem_id#"></cfoutput>
-            <br>
-            <br>
-            <br>
-            <button type="button" id="StatusSub" onclick="Clear_Mem()">
-              Clear
-            </button>
-          </td> 
+    <!--- WGG 8/9/2014 Member Search --->
+    <td align="center" style="vertical-align:middle;">
+      <cfoutput>
+        <br> <!--- WGG 8/9/2014 this is needed at the moment to line up fields --->
+        <input type="text" id="form_member_name" name="form_member_name" size="15" value="#form_member_name#">
+        <br>
+        Last Name
+        <button type="button" id="StatusSub" onclick="Clear_Name()">
+        Clear
+        </button>
+        <br>
+        <br>  
+                
+        <!--- WGG 8/9/2014 Member ID --->
+        <input type="text" id="form_mem_id" name="form_mem_id" size="15" value="#form_mem_id#"></cfoutput>
+        <br>
+        <br>
+        <br>
+        <button type="button" id="StatusSub" onclick="Clear_Mem()">
+        Clear
+      </button>
+    </td> 
       
     <tr class="list_even_odd">
       <!--- WGG 8/7/2013 Date search, not live yet 
