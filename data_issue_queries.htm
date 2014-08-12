@@ -11,17 +11,17 @@
 WGG --->
 
 <!--- WGG 5/27/2014 this is if you are passing in variables
-  everything which is being chosen on the report like
-  dates or broker id --->
+	everything which is being chosen on the report like
+	dates or broker id --->
 <cfset default_query_name = "">
 <cfset default_variables = "
-  member_id
-  k_data_source
-  form_ticket_status
-  form_ticket_ignored
-  form_broker_name
-  form_mem_id
-  form_ticket_resolved
+	member_id
+	k_data_source
+	form_ticket_status
+	form_ticket_ignored
+	form_broker_name
+	form_mem_id
+	form_ticket_resolved
 ">
 <!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
 <cfinclude template="../cf_includes/set_defaults.htm">
@@ -35,265 +35,265 @@ WGG --->
 --->
 
 <!--- WGG 6/21/2014 populates data issues for blank line items for any windows which generated
-  transactions in the last two months or effetive date in last 3 months--->
+	transactions in the last two months or effetive date in last 3 months--->
 <cfquery name="q_pop_blank_line_item_trans" datasource="#application.sys_ds#">
-  INSERT INTO TAG_data_issues
-    (cid
-    ,k_tag_issue_type
-    ,k_tag_issue_reason
-    ,is_ignored
-    ,date_opened
-    ,is_resolved
-    ,k_brk_broker
-    ,k_mem_member_master
-    ,k_mem_membership_window
-    ,k_brk_entity_contract
-    ,k_tag_issue_status_id)
+	INSERT INTO TAG_data_issues
+		(cid
+		,k_tag_issue_type
+		,k_tag_issue_reason
+		,is_ignored
+		,date_opened
+		,is_resolved
+		,k_brk_broker
+		,k_mem_member_master
+		,k_mem_membership_window
+		,k_brk_entity_contract
+		,k_tag_issue_status_id)
   
-  SELECT
-    w.cid -- cid
-    ,1 -- issues type: missing line item
-    ,1 -- reason not known
-    ,0 -- not ignored
-    ,GETDATE() -- date opened
-    ,0 -- is resolved
-    ,w.k_brk_broker
-    ,w.k_mem_member_master
-    ,w.pk_mem_membership_window
-    ,w.k_brk_entity_contract
-    ,0 -- issue status is needs review
+	SELECT
+		w.cid -- cid
+		,1 -- issues type: missing line item
+		,1 -- reason not known
+		,0 -- not ignored
+		,GETDATE() -- date opened
+		,0 -- is resolved
+		,w.k_brk_broker
+		,w.k_mem_member_master
+		,w.pk_mem_membership_window
+		,w.k_brk_entity_contract
+		,0 -- issue status is needs review
   
-  FROM mem_membership_window w
-    LEFT JOIN TAG_data_issues
-      ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
-      AND TAG_data_issues.k_tag_issue_type = 1
-    LEFT JOIN brk_broker b
-      ON w.k_brk_broker = b.pk_brk_broker
+	FROM mem_membership_window w
+		LEFT JOIN TAG_data_issues
+			ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
+			AND TAG_data_issues.k_tag_issue_type = 1
+		LEFT JOIN brk_broker b
+			ON w.k_brk_broker = b.pk_brk_broker
     
-  WHERE 1=1
-    /* do not insert missing line item issues already in data issue table for 
-          this issue type */
-    AND (
-        TAG_data_issues.k_mem_membership_window is NULL
-        OR TAG_data_issues.k_tag_issue_type <> 1)
-    /* select client */
-    AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-    /* Line item is not assigned */
-    AND w.K_BRK_entity_contract_line_item is NULL
-    /* Window is not cancelled */
-    AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
-    /* Do not include ignored reps */
-    AND w.k_brk_broker not in (
-      SELECT ignore.k_brk_broker
-      FROM tag_ignored_reps ignore)
-      AND (
-          /* Window has an effective date in last 3 months */
-      (w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()))
-      OR
-      /* Window has a transaction in Last 2 months */
-      (EXISTS (SELECT k_mem_membership_window FROM brk_Commission_transaction
-        INNER JOIN brk_entity_contract_payment_period 
-        ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
-      WHERE k_mem_membership_window = w.pk_mem_membership_window
-        AND payment_period >= DATEADD(month, -2, GETDATE())))
-      )
-    <cfif cid EQ 5>
-    /* For Scan, eliminate Medi-Cal enrollments for external contracts */
-    AND (
-      w.k_cms_contract <> 12 
-      OR 
-      (w.k_cms_contract = 12 
-        AND w.k_BRK_entity_contract 
-        IN (148, 171, 142, 160, 145, 146, 193, 192, 149, 143) <!--- WGG 6/26/2014 removed contract 210, per Wing it is external --->
-      )
-    )
-    /* For Scan, eliminate Miscellaneous contract */
-    AND ISNULL(w.k_BRK_entity_contract, 1) <> 164
-    </cfif>
+	WHERE 1=1
+		/* do not insert missing line item issues already in data issue table for 
+      		this issue type */
+		AND (
+				TAG_data_issues.k_mem_membership_window is NULL
+				OR TAG_data_issues.k_tag_issue_type <> 1)
+		/* select client */
+		AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+		/* Line item is not assigned */
+		AND w.K_BRK_entity_contract_line_item is NULL
+		/* Window is not cancelled */
+		AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
+		/* Do not include ignored reps */
+		AND w.k_brk_broker not in (
+			SELECT ignore.k_brk_broker
+			FROM tag_ignored_reps ignore)
+    	AND (
+      		/* Window has an effective date in last 3 months */
+			(w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()))
+			OR
+			/* Window has a transaction in Last 2 months */
+			(EXISTS (SELECT k_mem_membership_window FROM brk_Commission_transaction
+				INNER JOIN brk_entity_contract_payment_period 
+				ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
+			WHERE k_mem_membership_window = w.pk_mem_membership_window
+				AND payment_period >= DATEADD(month, -2, GETDATE())))
+			)
+		<cfif cid EQ 5>
+		/* For Scan, eliminate Medi-Cal enrollments for external contracts */
+		AND (
+			w.k_cms_contract <> 12 
+			OR 
+			(w.k_cms_contract = 12 
+				AND w.k_BRK_entity_contract 
+				IN (148, 171, 142, 160, 145, 146, 193, 192, 149, 143) <!--- WGG 6/26/2014 removed contract 210, per Wing it is external --->
+			)
+		)
+		/* For Scan, eliminate Miscellaneous contract */
+		AND ISNULL(w.k_BRK_entity_contract, 1) <> 164
+		</cfif>
 </cfquery>
 
 <cfif cid NEQ 15 AND cid NEQ 4> <!--- WGG 7/23/2014 SPH doesn't use agencies --->
-  <cfquery name="q_populate_app_outside_agency" datasource="#application.sys_ds#">
-    /* cases where app rec is outside of broker agency */
-  INSERT INTO TAG_data_issues
-      (cid
-      ,k_tag_issue_type
-      ,k_tag_issue_reason
-      ,is_ignored
-      ,date_opened
-      ,is_resolved
-      ,k_brk_broker
-      ,k_mem_member_master
-      ,k_mem_membership_window
-      ,k_brk_entity_contract
-      ,k_tag_issue_status_id)
-    
-    SELECT
-       w.cid -- cid
-      ,3 -- issues type: app rec outside agency
-      ,6 -- app rec outside of broker agency
-      ,0 -- not ignored
-      ,GETDATE() -- date opened
-      ,0 -- is resolved
-      ,w.k_brk_broker
-      ,w.k_mem_member_master
-      ,w.pk_mem_membership_window
-      ,w.k_brk_entity_contract
-      ,0 -- issue status is needs review
-    FROM mem_membership_window w
-      INNER JOIN mem_member_master m 
-      ON m.pk_mem_member_master = w.k_mem_member_master
-      LEFT JOIN brk_broker b
-      ON b.pk_brk_broker = w.k_brk_broker
-      LEFT JOIN BRK_broker__brk_agency_JOIN baj1 
-      ON baj1.k_brk_broker = b.pk_brk_broker
-    LEFT JOIN brk_entity_contract bec
-      ON w.k_brk_entity_contract = bec.pk_brk_entity_contract
-    /* active broker type */
-    LEFT JOIN BRK_broker_type_history bth
-      ON bth.k_brk_broker = w.k_brk_broker
-        AND w.application_date BETWEEN bth.start_date AND ISNULL(bth.end_date,'2199-01-01')
-    WHERE 1=1
-      AND w.cid  = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-      /* cases where app rec date doesn't line up with active agency */
-      and w.application_date NOT between baj1.start_date AND ISNULL(baj1.end_date, '2199-01-01')
-      /* and there is no case where the app receive date does not fall between another active
-        agency date range */
-      and NOT EXISTS (
-            SELECT w.application_date
-            FROM
-              mem_membership_window w2
-            LEFT JOIN
-              brk_broker b2
-                on b2.pk_brk_broker = w2.k_brk_broker
-            LEFT JOIN
-              BRK_broker__brk_agency_JOIN baj2
-                on baj2.k_brk_broker = b2.pk_brk_broker
-            WHERE 
-              w.application_date between baj2.start_date AND ISNULL(baj2.end_date,'2199-01-01')
-              and w.pk_mem_membership_window = w2.pk_mem_membership_window
-          ) 
-      AND
-      (
-        /* Window has an effective date in last 3 months */
+	<cfquery name="q_populate_app_outside_agency" datasource="#application.sys_ds#">
+	  /* cases where app rec is outside of broker agency */
+	INSERT INTO TAG_data_issues
+	    (cid
+	    ,k_tag_issue_type
+	    ,k_tag_issue_reason
+	    ,is_ignored
+	    ,date_opened
+	    ,is_resolved
+	    ,k_brk_broker
+	    ,k_mem_member_master
+	    ,k_mem_membership_window
+	    ,k_brk_entity_contract
+	    ,k_tag_issue_status_id)
+	  
+	  SELECT
+	     w.cid -- cid
+	    ,3 -- issues type: app rec outside agency
+	    ,6 -- app rec outside of broker agency
+	    ,0 -- not ignored
+	    ,GETDATE() -- date opened
+	    ,0 -- is resolved
+	    ,w.k_brk_broker
+	    ,w.k_mem_member_master
+	    ,w.pk_mem_membership_window
+	    ,w.k_brk_entity_contract
+	    ,0 -- issue status is needs review
+	  FROM mem_membership_window w
+	    INNER JOIN mem_member_master m 
+			ON m.pk_mem_member_master = w.k_mem_member_master
+	    LEFT JOIN brk_broker b
+			ON b.pk_brk_broker = w.k_brk_broker
+	    LEFT JOIN BRK_broker__brk_agency_JOIN baj1 
+			ON baj1.k_brk_broker = b.pk_brk_broker
+		LEFT JOIN brk_entity_contract bec
+			ON w.k_brk_entity_contract = bec.pk_brk_entity_contract
+		/* active broker type */
+		LEFT JOIN BRK_broker_type_history bth
+			ON bth.k_brk_broker = w.k_brk_broker
+				AND w.application_date BETWEEN bth.start_date AND ISNULL(bth.end_date,'2199-01-01')
+	  WHERE 1=1
+	    AND w.cid  = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+	    /* cases where app rec date doesn't line up with active agency */
+	    and w.application_date NOT between baj1.start_date AND ISNULL(baj1.end_date, '2199-01-01')
+	    /* and there is no case where the app receive date does not fall between another active
+	      agency date range */
+	    and NOT EXISTS (
+	          SELECT w.application_date
+	          FROM
+	            mem_membership_window w2
+	          LEFT JOIN
+	            brk_broker b2
+	              on b2.pk_brk_broker = w2.k_brk_broker
+	          LEFT JOIN
+	            BRK_broker__brk_agency_JOIN baj2
+	              on baj2.k_brk_broker = b2.pk_brk_broker
+	          WHERE 
+	            w.application_date between baj2.start_date AND ISNULL(baj2.end_date,'2199-01-01')
+	            and w.pk_mem_membership_window = w2.pk_mem_membership_window
+	        ) 
+	    AND
+	    (
+	      /* Window has an effective date in last 3 months */
 
-        (
-          w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE())
-        )
-        OR
-        /* Window has a transaction in Last 2 months */       
-        (
-          EXISTS 
-          ( SELECT k_mem_membership_window FROM brk_Commission_transaction
-            INNER JOIN brk_entity_contract_payment_period 
-              ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
-            WHERE k_mem_membership_window = w.pk_mem_membership_window
-              AND payment_period >= DATEADD(month, -2, GETDATE()))
-        )
-      )
-    <cfif cid EQ 7>
-      <!--- WGG 7/1/2014 Molina - remove agency test for windows without a contract or with a captive contract --->
-      AND NOT (
-        w.k_brk_entity_contract IS NULL 
-        OR bec.name like '%Captive%')
-    <!--- WGG 8/8/2014 the below was not working as it was returning Juanita woods for member Shawler
-        because it wasn't checking the rep type as of the enrollment window...
-      <!--- WGG 7/1/2014 Molina - rep is not an independent agent - they do not have an agency --->
-      AND (bth.k_BRK_broker_type IS NULL OR bth.k_BRK_broker_type <> '3955')    
-    --->
-      AND (w.k_brk_broker_type__enrolled IS NULL OR w.k_brk_broker_type__enrolled <> '3955')
-    </cfif>
-  </cfquery>
+	      (
+	        w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE())
+	      )
+	      OR
+	      /* Window has a transaction in Last 2 months */	      
+	      (
+	        EXISTS 
+	        ( SELECT k_mem_membership_window FROM brk_Commission_transaction
+	          INNER JOIN brk_entity_contract_payment_period 
+	            ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
+	          WHERE k_mem_membership_window = w.pk_mem_membership_window
+	            AND payment_period >= DATEADD(month, -2, GETDATE()))
+	      )
+	    )
+		<cfif cid EQ 7>
+			<!--- WGG 7/1/2014 Molina - remove agency test for windows without a contract or with a captive contract --->
+			AND NOT (
+				w.k_brk_entity_contract IS NULL 
+				OR bec.name like '%Captive%')
+		<!--- WGG 8/8/2014 the below was not working as it was returning Juanita woods for member Shawler
+				because it wasn't checking the rep type as of the enrollment window...
+			<!--- WGG 7/1/2014 Molina - rep is not an independent agent - they do not have an agency --->
+			AND (bth.k_BRK_broker_type IS NULL OR bth.k_BRK_broker_type <> '3955')		
+		--->
+			AND (w.k_brk_broker_type__enrolled IS NULL OR w.k_brk_broker_type__enrolled <> '3955')
+		</cfif>
+	</cfquery>
 </cfif>
 
 <!--- WGG 7/1/2014 note that the order is important no agency supercedes app outside agency --->
 <cfif cid NEQ 15 AND cid NEQ 4> <!--- WGG 7/23/2014 SPH and Cigna do not use agencies --->
-  <cfquery name="q_populate_no_agency" datasource="#application.sys_ds#">
-  
-    /* Populating data issues where enrolling rep has no agency for windows with
-        transactions in the last two months */
-    
-    INSERT INTO TAG_data_issues
-       (cid
-       ,k_tag_issue_type
-       ,k_tag_issue_reason
-       ,is_ignored
-       ,date_opened
-       ,is_resolved
-       ,k_brk_broker
-       ,k_mem_member_master
-       ,k_mem_membership_window
-       ,k_brk_entity_contract
-       ,k_tag_issue_status_id)
-    
-    SELECT
-       w.cid -- cid
-      ,2 -- issues type: broker has no agency
-      ,5 -- reason broker has no agency
-      ,0 -- not ignored
-      ,GETDATE() -- date opened
-      ,0 -- is resolved
-      ,w.k_brk_broker
-      ,w.k_mem_member_master
-      ,w.pk_mem_membership_window
-      ,w.k_brk_entity_contract
-      ,0 -- issue status is needs review
-    FROM mem_membership_window w
-      LEFT JOIN TAG_data_issues
-        ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
-        AND TAG_data_issues.k_tag_issue_type = 2
-      LEFT JOIN brk_broker b
-        ON w.k_brk_broker = b.pk_brk_broker
-      LEFT JOIN BRK_broker__brk_agency_JOIN baj
-        ON b.pk_brk_broker = baj.k_brk_broker
-      LEFT JOIN mem_member_master m
-        ON m.pk_mem_member_master = w.k_mem_member_master
-      LEFT JOIN brk_entity_contract bec
-        ON bec.pk_brk_entity_contract = w.k_brk_entity_contract
-      LEFT JOIN BRK_broker_type_history bth
-        ON bth.k_brk_broker = w.k_brk_broker
-          AND w.application_date BETWEEN bth.start_date AND ISNULL(bth.end_date,'2199-01-01')
-        
-    WHERE 1=1
-        /* do not insert missing line item issues already in data issue table */
-      AND TAG_data_issues.pk_TAG_data_issues IS NULL
-      AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-      /* Window is not cancelled */
-      AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
-      /* Do not include ignored reps */
-      AND w.k_brk_broker 
-        not in (
-          SELECT ignore.k_brk_broker
-          FROM tag_ignored_reps ignore
-        )
-      <cfif cid EQ 7>
-        /* Molina - ingore windows with captive contracts */
-        AND bec.name NOT LIKE '%Captive%'
-        <!--- WGG 7/1/2014 for molina, ignore independent agents --->
-        AND (bth.k_BRK_broker_type IS NULL OR bth.k_BRK_broker_type <> '3955')
-      </cfif>
-      AND w.k_brk_broker is not NULL
-      AND baj.k_brk_broker is NULL
-      AND (
-        (EXISTS 
-          ( SELECT k_mem_membership_window FROM brk_Commission_transaction
-          INNER JOIN brk_entity_contract_payment_period 
-            ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
-          WHERE k_mem_membership_window = w.pk_mem_membership_window
-            AND payment_period >= DATEADD(month, -2, GETDATE()))
-        )
-      OR
-        (
-          w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE())
-        )
-      )
-  
-  </cfquery>
+	<cfquery name="q_populate_no_agency" datasource="#application.sys_ds#">
+	
+		/* Populating data issues where enrolling rep has no agency for windows with
+	   		transactions in the last two months */
+	  
+	 	INSERT INTO TAG_data_issues
+		   (cid
+		   ,k_tag_issue_type
+		   ,k_tag_issue_reason
+		   ,is_ignored
+		   ,date_opened
+		   ,is_resolved
+		   ,k_brk_broker
+		   ,k_mem_member_master
+		   ,k_mem_membership_window
+		   ,k_brk_entity_contract
+		   ,k_tag_issue_status_id)
+	  
+		SELECT
+			 w.cid -- cid
+			,2 -- issues type: broker has no agency
+			,5 -- reason broker has no agency
+			,0 -- not ignored
+			,GETDATE() -- date opened
+			,0 -- is resolved
+			,w.k_brk_broker
+			,w.k_mem_member_master
+			,w.pk_mem_membership_window
+			,w.k_brk_entity_contract
+			,0 -- issue status is needs review
+		FROM mem_membership_window w
+			LEFT JOIN TAG_data_issues
+				ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
+				AND TAG_data_issues.k_tag_issue_type = 2
+			LEFT JOIN brk_broker b
+				ON w.k_brk_broker = b.pk_brk_broker
+			LEFT JOIN BRK_broker__brk_agency_JOIN baj
+				ON b.pk_brk_broker = baj.k_brk_broker
+			LEFT JOIN mem_member_master m
+				ON m.pk_mem_member_master = w.k_mem_member_master
+			LEFT JOIN brk_entity_contract bec
+				ON bec.pk_brk_entity_contract = w.k_brk_entity_contract
+			LEFT JOIN BRK_broker_type_history bth
+				ON bth.k_brk_broker = w.k_brk_broker
+					AND w.application_date BETWEEN bth.start_date AND ISNULL(bth.end_date,'2199-01-01')
+				
+		WHERE 1=1
+	    	/* do not insert missing line item issues already in data issue table */
+			AND TAG_data_issues.pk_TAG_data_issues IS NULL
+			AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+			/* Window is not cancelled */
+			AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
+			/* Do not include ignored reps */
+			AND w.k_brk_broker 
+				not in (
+					SELECT ignore.k_brk_broker
+					FROM tag_ignored_reps ignore
+				)
+			<cfif cid EQ 7>
+				/* Molina - ingore windows with captive contracts */
+				AND bec.name NOT LIKE '%Captive%'
+				<!--- WGG 7/1/2014 for molina, ignore independent agents --->
+				AND (bth.k_BRK_broker_type IS NULL OR bth.k_BRK_broker_type <> '3955')
+			</cfif>
+			AND w.k_brk_broker is not NULL
+			AND baj.k_brk_broker is NULL
+	    AND (
+				(EXISTS 
+				  ( SELECT k_mem_membership_window FROM brk_Commission_transaction
+					INNER JOIN brk_entity_contract_payment_period 
+					  ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
+					WHERE k_mem_membership_window = w.pk_mem_membership_window
+					  AND payment_period >= DATEADD(month, -2, GETDATE()))
+				)
+			OR
+				(
+					w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE())
+				)
+			)
+	
+	</cfquery>
 </cfif>
 
 <cfif cid EQ 7>
 <!--- WGG 8/9/2014 per call with Eliz, this should not be checked for teams:
-  All Regions, West Region, East Region, IL & Broker IL
+	All Regions, West Region, East Region, IL & Broker IL
 --->
 <cfquery name="q_pop_no_team_goals" datasource="#application.sys_ds#">
 /* team has no goals */
@@ -310,8 +310,8 @@ INSERT INTO TAG_data_issues
     ,k_mem_membership_window
     ,k_brk_entity_contract
     ,k_tag_issue_status_id
-  ,k_tea_team
-  ,team_period_start)
+	,k_tea_team
+	,team_period_start)
 
   SELECT DISTINCT
      7 -- cid
@@ -325,21 +325,21 @@ INSERT INTO TAG_data_issues
     ,0
     ,0
     ,0 -- issue status is needs review
-  ,ttmp.k_tea_team
-  ,ttmp.period_start
-  FROM vw_tea_team_metric_period ttmp
-  <!--- WGG 8/5/2014 NEED TO ADD SOMETHING LIKE THIS TO NOT INSERT DUPLICATES --->
-    LEFT JOIN TAG_data_issues
-    ON TAG_data_issues.k_tea_team = ttmp.k_tea_team
-      AND TAG_data_issues.team_period_start = ttmp.period_start
-      AND TAG_data_issues.k_tag_issue_type = 5
-  <!--- WGG 8/5/2014 END TEST --->
-  WHERE ttmp.cid = 7 
-  AND ttmp.period_start BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()
-  AND ttmp.goal < 1
-  AND ttmp.k_tea_team NOT IN (442, 405,17,393,394,449,450)   -- ignore captive sales rep lead, inside sales, All Regions, West Region, East Region,IL & Broker IL
-  <!--- WGG 8/ along with the LEFT JOIN prevents duplicates from being inserted --->
-  AND TAG_data_issues.pk_TAG_data_issues IS NULL
+	,ttmp.k_tea_team
+	,ttmp.period_start
+	FROM vw_tea_team_metric_period ttmp
+	<!--- WGG 8/5/2014 NEED TO ADD SOMETHING LIKE THIS TO NOT INSERT DUPLICATES --->
+		LEFT JOIN TAG_data_issues
+		ON TAG_data_issues.k_tea_team = ttmp.k_tea_team
+			AND TAG_data_issues.team_period_start = ttmp.period_start
+			AND TAG_data_issues.k_tag_issue_type = 5
+	<!--- WGG 8/5/2014 END TEST --->
+	WHERE ttmp.cid = 7 
+	AND ttmp.period_start BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()
+	AND ttmp.goal < 1
+	AND ttmp.k_tea_team NOT IN (442, 405,17,393,394,449,450)   -- ignore captive sales rep lead, inside sales, All Regions, West Region, East Region,IL & Broker IL
+	<!--- WGG 8/ along with the LEFT JOIN prevents duplicates from being inserted --->
+	AND TAG_data_issues.pk_TAG_data_issues IS NULL
 
 </cfquery>
 </cfif>
@@ -349,80 +349,80 @@ INSERT INTO TAG_data_issues
 /* find cases where enrollment is outside of any team besides regional */
 
 INSERT INTO TAG_data_issues
-  (cid
-  ,k_tag_issue_type
-  ,k_tag_issue_reason
-  ,is_ignored
-  ,date_opened
-  ,is_resolved
-  ,k_brk_broker
-  ,k_mem_member_master
-  ,k_mem_membership_window
-  ,k_brk_entity_contract
-  ,k_tag_issue_status_id
-  ,k_tea_team
-  ,team_period_start)
+	(cid
+	,k_tag_issue_type
+	,k_tag_issue_reason
+	,is_ignored
+	,date_opened
+	,is_resolved
+	,k_brk_broker
+	,k_mem_member_master
+	,k_mem_membership_window
+	,k_brk_entity_contract
+	,k_tag_issue_status_id
+	,k_tea_team
+	,team_period_start)
 
 SELECT DISTINCT
-  w.cid -- cid
-  ,4 -- issues type: app rec outside team
-  ,10 -- app rec outside of regional team
-  ,0 -- not ignored
-  ,GETDATE() -- date opened
-  ,0 -- is resolved
-  ,w.k_brk_broker
-  ,w.k_mem_member_master
-  ,w.pk_mem_membership_window
-  ,w.k_brk_entity_contract
-  ,0 -- issue status is needs review
-  ,ttj.k_tea_team
-  ,0
+	w.cid -- cid
+	,4 -- issues type: app rec outside team
+	,10 -- app rec outside of regional team
+	,0 -- not ignored
+	,GETDATE() -- date opened
+	,0 -- is resolved
+	,w.k_brk_broker
+	,w.k_mem_member_master
+	,w.pk_mem_membership_window
+	,w.k_brk_entity_contract
+	,0 -- issue status is needs review
+	,ttj.k_tea_team
+	,0
 FROM mem_membership_window w
-  INNER JOIN mem_member_master m 
-    ON m.pk_mem_member_master = w.k_mem_member_master
-  LEFT JOIN brk_broker b
-    ON b.pk_brk_broker = w.k_brk_broker
-  LEFT JOIN BRK_broker__TEA_team__JOIN ttj
-    ON ttj.k_brk_broker = b.pk_brk_broker
-    AND ttj.K_tea_team NOT IN (455, 457)
-  LEFT JOIN brk_entity_contract bec
-    ON w.k_brk_entity_contract = bec.pk_brk_entity_contract
-  /* active team */
-  LEFT JOIN BRK_broker_type_history bth
-    ON bth.k_brk_broker = w.k_brk_broker
-      AND w.application_date BETWEEN bth.start_date AND ISNULL(bth.end_date,'2199-01-01')
-  LEFT JOIN TAG_data_issues tdi
-    ON tdi.k_mem_membership_window = w.pk_mem_membership_window
+	INNER JOIN mem_member_master m 
+		ON m.pk_mem_member_master = w.k_mem_member_master
+	LEFT JOIN brk_broker b
+		ON b.pk_brk_broker = w.k_brk_broker
+	LEFT JOIN BRK_broker__TEA_team__JOIN ttj
+		ON ttj.k_brk_broker = b.pk_brk_broker
+		AND ttj.K_tea_team NOT IN (455, 457)
+	LEFT JOIN brk_entity_contract bec
+		ON w.k_brk_entity_contract = bec.pk_brk_entity_contract
+	/* active team */
+	LEFT JOIN BRK_broker_type_history bth
+		ON bth.k_brk_broker = w.k_brk_broker
+			AND w.application_date BETWEEN bth.start_date AND ISNULL(bth.end_date,'2199-01-01')
+	LEFT JOIN TAG_data_issues tdi
+		ON tdi.k_mem_membership_window = w.pk_mem_membership_window
 WHERE 1=1
-  AND w.cid  = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-  AND (
-    tdi.k_mem_membership_window is NULL
-    OR tdi.k_tag_issue_type <> 4
-    )
-  /* cases where app rec date doesn't line up with active team */
-  AND w.application_date NOT between ttj.start_date AND ISNULL(ttj.end_date, '2199-01-01')
+	AND w.cid  = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+	AND (
+		tdi.k_mem_membership_window is NULL
+		OR tdi.k_tag_issue_type <> 4
+		)
+	/* cases where app rec date doesn't line up with active team */
+	AND w.application_date NOT between ttj.start_date AND ISNULL(ttj.end_date, '2199-01-01')
 
-  /* and there is no case where the app receive date does not fall between another active
-    team date range */
-  AND NOT EXISTS (
-      SELECT *
-      FROM
-      mem_membership_window w2
-      LEFT JOIN
-      brk_broker b2
-        on b2.pk_brk_broker = w2.k_brk_broker
-      LEFT JOIN
-      BRK_broker__TEA_team__JOIN ttj2
-        on ttj2.k_brk_broker = b2.pk_brk_broker
-      WHERE 
-      w2.application_date between ttj2.start_date AND ISNULL(ttj2.end_date,'2199-01-01')
-      AND ttj2.K_tea_team NOT IN (455, 457)
-      AND w2.pk_mem_membership_window = w.pk_mem_membership_window
-        ) 
+	/* and there is no case where the app receive date does not fall between another active
+		team date range */
+	AND NOT EXISTS (
+			SELECT *
+			FROM
+			mem_membership_window w2
+			LEFT JOIN
+			brk_broker b2
+				on b2.pk_brk_broker = w2.k_brk_broker
+			LEFT JOIN
+			BRK_broker__TEA_team__JOIN ttj2
+				on ttj2.k_brk_broker = b2.pk_brk_broker
+			WHERE 
+			w2.application_date between ttj2.start_date AND ISNULL(ttj2.end_date,'2199-01-01')
+			AND ttj2.K_tea_team NOT IN (455, 457)
+			AND w2.pk_mem_membership_window = w.pk_mem_membership_window
+				) 
 
       /* Effective date is in the last 3 months */
     AND (w.start_date IS NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()))
-  AND ttj.K_tea_team NOT IN (455, 457)
+	AND ttj.K_tea_team NOT IN (455, 457)
 </cfquery>
 </cfif>
 
@@ -435,37 +435,37 @@ WHERE 1=1
 
 <!--- WGG 6/27/2014 added query to find missing line items due to no matching group --->
 <cfquery name="q_set_reason_no_group" datasource="#application.sys_ds#">
-  UPDATE TAG_data_issues
-  SET k_tag_issue_reason =7 --No line item with matching group, note for Scan groups include counties
-  FROM TAG_data_issues di
-  WHERE 1=1
-    /* Only check if a contract is assigned */
-    AND di.k_brk_entity_contract IS NOT NULL
-    /* Only check for issues where line item is blank */
-    AND di.k_tag_issue_type = 1
-    AND di.k_mem_membership_window in 
-    (
-      SELECT DISTINCT w.pk_mem_membership_window
-      FROM grp_group g
-        LEFT JOIN mem_membership_window_group wg 
-          ON wg.k_grp_group = g.pk_grp_group
-        LEFT JOIN mem_membership_window w
-          ON wg.k_mem_membership_window = w.pk_mem_membership_window
-        LEFT JOIN BRK_entity_contract_line_item becli
-          ON becli.k_BRK_entity_contract = w.k_BRK_entity_contract
-        LEFT JOIN BRK_entity_contract_line_item__grp_group_JOIN ggj
-          ON ggj.k_BRK_entity_contract_line_item = becli.pk_BRK_entity_contract_line_item
-      WHERE 1=1
-        /* where the window group is not in the list of available groups for ANY line item
-          under the contract */
-        AND wg.k_grp_group 
-          NOT IN (SELECT distinct ggj2.k_grp_group
-              FROM BRK_entity_contract_line_item becli2
-                INNER JOIN BRK_entity_contract_line_item__grp_group_JOIN ggj2
-                  ON ggj2.k_BRK_entity_contract_line_item = becli2.pk_BRK_entity_contract_line_item
-              WHERE becli2.k_BRK_entity_contract = becli.k_BRK_entity_contract
-              )
-    )
+	UPDATE TAG_data_issues
+	SET k_tag_issue_reason =7 --No line item with matching group, note for Scan groups include counties
+	FROM TAG_data_issues di
+	WHERE 1=1
+		/* Only check if a contract is assigned */
+		AND di.k_brk_entity_contract IS NOT NULL
+		/* Only check for issues where line item is blank */
+		AND di.k_tag_issue_type = 1
+		AND di.k_mem_membership_window in 
+		(
+			SELECT DISTINCT w.pk_mem_membership_window
+			FROM grp_group g
+				LEFT JOIN mem_membership_window_group wg 
+					ON wg.k_grp_group = g.pk_grp_group
+				LEFT JOIN mem_membership_window w
+					ON wg.k_mem_membership_window = w.pk_mem_membership_window
+				LEFT JOIN BRK_entity_contract_line_item becli
+					ON becli.k_BRK_entity_contract = w.k_BRK_entity_contract
+				LEFT JOIN BRK_entity_contract_line_item__grp_group_JOIN ggj
+					ON ggj.k_BRK_entity_contract_line_item = becli.pk_BRK_entity_contract_line_item
+			WHERE 1=1
+				/* where the window group is not in the list of available groups for ANY line item
+					under the contract */
+				AND wg.k_grp_group 
+					NOT IN (SELECT distinct ggj2.k_grp_group
+							FROM BRK_entity_contract_line_item becli2
+								INNER JOIN BRK_entity_contract_line_item__grp_group_JOIN ggj2
+									ON ggj2.k_BRK_entity_contract_line_item = becli2.pk_BRK_entity_contract_line_item
+							WHERE becli2.k_BRK_entity_contract = becli.k_BRK_entity_contract
+							)
+		)
 </cfquery>
 
 <cfquery name="q_set_reason_app_outside" datasource="#application.sys_ds#">
@@ -535,8 +535,8 @@ WHERE 1=1
           ON b.pk_brk_broker = w.k_brk_broker
         LEFT JOIN brk_broker__brk_entity_contract_join becj 
           ON becj.k_brk_broker = b.pk_brk_broker
-    LEFT JOIN BRK_broker__BRK_Universal_contract_JOIN bucj
-      ON bucj.k_brk_broker = w.k_brk_broker
+		LEFT JOIN BRK_broker__BRK_Universal_contract_JOIN bucj
+			ON bucj.k_brk_broker = w.k_brk_broker
       WHERE 1=1
         AND w.cid  = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
         and w.application_date NOT between bucj.start_date AND ISNULL(bucj.end_date, '2199-01-01')
@@ -594,28 +594,28 @@ WHERE 1=1
 </cfquery>
 
 <cfquery name="q_resolve_agency" datasource="#application.sys_ds#" result="resolve_result">
-  UPDATE tdi
-  SET tdi.is_resolved = 1
-  FROM tag_data_issues tdi
-    INNER JOIN mem_membership_window w2
-      ON w2.pk_mem_membership_window = tdi.k_mem_membership_window
-    LEFT JOIN BRK_broker__brk_agency_JOIN baj2
-      ON baj2.k_brk_broker = w2.k_brk_broker
-  WHERE tdi.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-    AND tdi.k_tag_issue_type = 2
-    AND w2.application_date between baj2.start_date AND ISNULL(baj2.end_date,'2199-01-01')
+	UPDATE tdi
+	SET tdi.is_resolved = 1
+	FROM tag_data_issues tdi
+		INNER JOIN mem_membership_window w2
+			ON w2.pk_mem_membership_window = tdi.k_mem_membership_window
+		LEFT JOIN BRK_broker__brk_agency_JOIN baj2
+			ON baj2.k_brk_broker = w2.k_brk_broker
+	WHERE tdi.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+		AND tdi.k_tag_issue_type = 2
+		AND w2.application_date between baj2.start_date AND ISNULL(baj2.end_date,'2199-01-01')
 </cfquery>
 
 <cfquery name="q_resolve_team_goal" datasource="#application.sys_ds#">
 UPDATE tdi
 SET tdi.is_resolved = 1
 FROM tag_data_issues tdi
-  LEFT JOIN vw_tea_team_metric_period ttmp
-  ON ttmp.k_tea_team = tdi.k_tea_team
-  AND ttmp.period_start = tdi.team_period_start
+	LEFT JOIN vw_tea_team_metric_period ttmp
+	ON ttmp.k_tea_team = tdi.k_tea_team
+	AND ttmp.period_start = tdi.team_period_start
 WHERE ttmp.cid = 7 
-  AND ttmp.goal > 0
-  AND ttmp.k_tea_team NOT IN (442, 405)
+	AND ttmp.goal > 0
+	AND ttmp.k_tea_team NOT IN (442, 405)
 </cfquery>
 
 <cfquery name="q_resolve_app_outside_team" datasource="#application.sys_ds#">
@@ -623,30 +623,30 @@ UPDATE tdi
 SET tdi.is_resolved = 1
 FROM tag_data_issues tdi
 
-  LEFT JOIN mem_membership_window w
-    ON tdi.k_mem_membership_window = w.pk_mem_membership_window
+	LEFT JOIN mem_membership_window w
+		ON tdi.k_mem_membership_window = w.pk_mem_membership_window
     LEFT JOIN mem_member_master m 
-    ON m.pk_mem_member_master = w.k_mem_member_master
+		ON m.pk_mem_member_master = w.k_mem_member_master
     LEFT JOIN brk_broker b
-    ON b.pk_brk_broker = w.k_brk_broker
+		ON b.pk_brk_broker = w.k_brk_broker
     LEFT JOIN BRK_broker__TEA_team__JOIN ttj
-    ON ttj.k_brk_broker = b.pk_brk_broker
-    AND ttj.K_tea_team NOT IN (455, 457)
-  LEFT JOIN brk_entity_contract bec
-    ON w.k_brk_entity_contract = bec.pk_brk_entity_contract
-  /* active team */
-  LEFT JOIN BRK_broker_type_history bth
-    ON bth.k_brk_broker = w.k_brk_broker
-      AND w.application_date BETWEEN bth.start_date AND ISNULL(bth.end_date,'2199-01-01')
+		ON ttj.k_brk_broker = b.pk_brk_broker
+		AND ttj.K_tea_team NOT IN (455, 457)
+	LEFT JOIN brk_entity_contract bec
+		ON w.k_brk_entity_contract = bec.pk_brk_entity_contract
+	/* active team */
+	LEFT JOIN BRK_broker_type_history bth
+		ON bth.k_brk_broker = w.k_brk_broker
+			AND w.application_date BETWEEN bth.start_date AND ISNULL(bth.end_date,'2199-01-01')
   WHERE 1=1
-  AND w.cid  = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-  AND tdi.k_tag_issue_type = 4
+	AND w.cid  = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+	AND tdi.k_tag_issue_type = 4
     /* cases where app rec date doesn't line up with active team */
     AND w.application_date BETWEEN ttj.start_date AND ISNULL(ttj.end_date, '2199-01-01')
     /* Effective date is in the last 3 months */
-  AND ttj.K_tea_team NOT IN (455, 457)
+	AND ttj.K_tea_team NOT IN (455, 457)
 </cfquery>
-  
+	
 <cfoutput>
   data_issue_queries.htm ran for cid #cid#<br>
   record processed: #resolve_result.RecordCount#
