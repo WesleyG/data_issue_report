@@ -391,13 +391,14 @@ function SaveComment() {
 		</cfif>
 
 		<!--- WGG 8/10/2014 test of date search --->
-		<cfif cid EQ 5>		
+		<cfif cid EQ 5 or CID EQ 7>		
 				<cfif isdefined('form.date_from') AND len(form.date_from)>
 					AND issue.date_opened >= <cfqueryparam value="#date_from#" cfsqltype="cf_sql_date"/>
 				</cfif>		
 		
 				<cfif isdefined('form.date_to') AND len(form.date_to)>
-					AND issue.date_opened <= <cfqueryparam value="#date_to#" cfsqltype="cf_sql_date"/>
+					<!--- WGG 8/12/2014 the minus one is required for same date search --->
+					AND (issue.date_opened - 1 ) <= <cfqueryparam value="#date_to#" cfsqltype="cf_sql_date"/>
 				</cfif>			
 		</cfif>
 	ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
