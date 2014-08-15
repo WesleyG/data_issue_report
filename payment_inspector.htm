@@ -1,0 +1,186 @@
+<cfinclude template = "../cf_includes/cf_PRE_template_include.htm">
+<cfparam name = "display_mode" default = "">
+
+<!--- set form and list files --->
+<cfset form_name="member_lookup.htm">
+<cfset list_file="member_lookup.htm">
+
+<!--- page title --->
+<cfset page_title="Member Lookup">
+<cfsavecontent variable="page_description">
+
+</cfsavecontent>
+
+<!--- page header --->
+<cfinclude template = "../templates/header.htm">
+
+
+<!--- set defaults for brk_sales_activity_log --->
+<cfset default_query_name = "">
+<cfset default_variables = "
+member_id
+upline_time
+calc_date
+contract_time
+">
+<cfinclude template="../cf_includes/set_defaults.htm">
+<!--- END set defaults for brk_sales_activity_log --->
+		
+<cfif isdefined('form.Submit')>
+
+	<cfquery name="q_sel_member" datasource="#application.sys_ds#">
+		SELECT	member_id,pk_mem_member_master,hicnbr,first_name,last_name,state,pk_mem_membership_window,start_date,end_date
+		FROM	mem_member_master
+		INNER JOIN mem_membership_window ON k_mem_member_master = pk_mem_member_master
+		WHERE	mem_member_master.cid = <cfqueryparam value="#val(application.cid)#" cfsqltype="cf_sql_integer"/>
+				AND end_date IS NULL
+				AND member_id = <cfqueryparam value="#Form.member_id#" cfsqltype="cf_sql_varchar"/>
+				OR hicnbr = <cfqueryparam value="#Form.member_id#" cfsqltype="cf_sql_varchar"/>
+	</cfquery>
+	
+	<cfset k_mem_membership_window = q_sel_member.pk_mem_membership_window>
+	
+	<cfquery name="q_stop_payment" datasource="#application.sys_ds#">
+		SELECT DISTINCT renewal_stop_on_end_date
+		FROM mem_membership_window win
+		INNER JOIN mem_member_master ON k_mem_member_master = pk_mem_member_master
+		INNER JOIN BRK_broker__BRK_entity_contract_JOIN bcj ON win.k_brk_broker = bcj.k_brk_broker
+		INNER JOIN BRK_broker__brk_entity_contract__fund_stop_pay bcfsp ON k_BRK_broker__BRK_entity_contract_JOIN = pk_BRK_broker__BRK_entity_contract_JOIN
+		WHERE win.pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+		AND renewal_stop_on_end_date IS NOT NULL
+	</cfquery>
+	
+	<cfquery name="q_data_issue" datasource="#application.sys_ds#">
+		SELECT COUNT(pk_TAG_data_issues) as data_count, k_mem_membership_window
+		FROM TAG_data_issues
+		WHERE k_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+		AND cid = <cfqueryparam value="#val(application.cid)#" cfsqltype="cf_sql_integer"/>
+		GROUP BY k_mem_membership_window
+	</cfquery>
+
+	<cfquery name="q_contract_date" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(last_calc_request, '01-01-1900')) as calc_date
+		FROM mem_membership_window win
+		INNER JOIN brk_entity_contract_payment_period bcpp ON bcpp.k_BRK_entity_contract = win.k_BRK_entity_contract
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>
+
+	<!--- WGG 8/14/2014 last contract edit --->
+	<cfquery name="q_contract_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(becj.time_stamp, '01-01-1900')) as contract_time
+		FROM BRK_broker__BRK_entity_contract_JOIN becj
+		LEFT JOIN mem_membership_window win on becj.k_brk_broker = win.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>
+		
+	<!--- WGG 8/14/2014 last upline edit --->
+	<cfquery name="q_upline_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(ber.time_stamp, '01-01-1900')) as upline_time
+		FROM mem_membership_window win
+		LEFT JOIN brk_broker_entity_relation ber ON win.k_brk_broker = ber.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>
+
+	
+</cfif>
+
+
+<form method="POST" action="#list_file#" name="#form_name#">
+	<div align="left">
+		<table class="form_table">
+			<tr>
+				<td class="form_field_name" align="right">Member ID</td>
+				<td class="form_field_entry">
+					<cfoutput><input type="text" id="member_id" name="member_id" size="20" value="#member_id#"></cfoutput>
+					<cfif isdefined("valStruct.member_id")><span class="valmsg"><cfoutput>#valStruct.member_id#</cfoutput></span></cfif>
+				</td>
+				<td class="form_field_entry" colspan="2" align="right"> 
+					<input class="form_submit_button" type="submit" value="Search" name="Submit">
+				</td>
+				
+			</tr>
+			<tr>
+				<td colspan=3>
+					<cfif isdefined('form.Submit')>
+						<cfoutput><h3>#q_sel_member.first_name# #q_sel_member.last_name# - #q_sel_member.member_id# - #q_sel_member.hicnbr# - #q_sel_member.state#</h3></cfoutput>
+					</cfif>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+</form>
+<!-- END output form -->
+
+<cfif isdefined('form.Submit')>
+	
+	<table id="cpy" class="list_table scrolling" scroll_height="700" width="300">
+		
+			<tr class="list_col_hdr">
+				<td>Current Window</td>
+				<cfoutput query = "q_sel_member">
+				<td>#pk_mem_membership_window#</td>	
+				</cfoutput>		
+			</tr>	
+				
+			<tr class="list_col_hdr">
+				<td>Stop Payment By Fund</td>
+				<cfif q_stop_payment.RecordCount GT 0>
+					<cfoutput query = "q_stop_payment">
+					<td style="background-color:red">#dateformat(renewal_stop_on_end_date,date_mask)#</td>		
+					</cfoutput>
+				<cfelse>
+					<td style="background-color:green">None</td>	
+				</cfif>
+			</tr>	
+			
+			<tr class="list_col_hdr">
+				<td>Data Issues</td>
+				<cfif q_data_issue.RecordCount GT 0>
+					<cfoutput query = "q_data_issue">
+					<td style="background-color:red">#data_count#</td>		
+					</cfoutput>	
+				<cfelse>
+					<td style="background-color:green">None</td>	
+				</cfif>
+			</tr>	
+			
+			<tr class="list_col_hdr">
+				<td>Contract Run Date</td>
+
+					<cfoutput query = "q_contract_date">
+					<td <cfif #DateDiff("m", calc_date, NOW())# GT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#calc_date#</td>		
+					</cfoutput>	
+
+			</tr>
+
+			<tr class="list_col_hdr">
+				<td>Last Contract Edit</td>
+
+					<cfoutput query = "q_contract_edit">
+					<td <cfif #DateDiff("s", contract_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#contract_time#</td>		
+					</cfoutput>
+			</tr>	
+			
+			<tr class="list_col_hdr">
+				<td>Last Upline Edit</td>
+
+					<cfoutput query = "q_upline_edit">
+					<td <cfif #DateDiff("s", upline_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#upline_time#</td>		
+					</cfoutput>	
+
+			</tr>								
+
+	</table>
+
+</cfif>
+
+
+<cfset ajaxonload("doScrollTables")>
+<cfset ajaxonload("makeSortable")>
