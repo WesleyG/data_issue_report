@@ -1,4 +1,3 @@
-<!--- WGG 8/14/2014 this was updated on 8/14 --->
 <cfinclude template = "../cf_includes/cf_PRE_template_include.htm">
 <cfparam name = "display_mode" default = "">
 
@@ -82,7 +81,25 @@ contract_time
 		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
 	</cfquery>
 
-	
+	<cfif cid EQ 4> 
+		<!--- WGG 8/15/2014 last universal contract edit, only check Cigna --->
+		<cfquery name="q_universal_edit" datasource="#application.sys_ds#">		
+			SELECT MAX(ISNULL(buc.time_stamp, '01-01-1900')) as universal_c_time
+			FROM BRK_broker__BRK_Universal_Contract_JOIN buc
+			LEFT JOIN mem_membership_window win ON win.k_brk_broker = buc.k_brk_broker
+			WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+		</cfquery>
+	</cfif>
+
+
+	<!--- WGG 8/15/2014 last team edit --->
+	<cfquery name="q_team_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(btj.time_stamp, '01-01-1900')) as team_time
+		FROM BRK_broker__TEA_team__JOIN btj
+		LEFT JOIN mem_membership_window win ON  btj.k_brk_broker = win.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>
+
 </cfif>
 
 
@@ -176,7 +193,31 @@ contract_time
 						>#upline_time#</td>		
 					</cfoutput>	
 
-			</tr>								
+			</tr>		
+			
+			<cfif cid EQ 4>						
+				<tr class="list_col_hdr">
+					<td>Last Universal Contract Edit</td>
+	
+						<cfoutput query = "q_universal_edit">
+						<td <cfif #DateDiff("s", universal_c_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+							<cfelse>style="background-color:green"</cfif>
+							>#universal_c_time#</td>		
+						</cfoutput>	
+	
+				</tr>		
+			</cfif>				
+
+			<tr class="list_col_hdr">
+				<td>Last Team Edit</td>
+
+					<cfoutput query = "q_team_edit">
+					<td <cfif #DateDiff("s", team_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#team_time#</td>		
+					</cfoutput>	
+
+			</tr>
 
 	</table>
 
