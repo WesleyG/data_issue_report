@@ -96,11 +96,69 @@ contract_time
 	<cfquery name="q_team_edit" datasource="#application.sys_ds#">		
 		SELECT MAX(ISNULL(btj.time_stamp, '01-01-1900')) as team_time
 		FROM BRK_broker__TEA_team__JOIN btj
-		LEFT JOIN mem_membership_window win ON  btj.k_brk_broker = win.k_brk_broker
+		LEFT JOIN mem_membership_window win ON btj.k_brk_broker = win.k_brk_broker
 		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
 	</cfquery>
 
+
+	<!--- WGG 8/19/2014 last agency edit --->
+	<cfquery name="q_agency_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(baj.time_stamp, '01-01-1900')) as agency_time
+		FROM BRK_broker__brk_agency_JOIN baj
+		LEFT JOIN mem_membership_window win ON baj.k_brk_broker = win.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>
+
+	<!--- WGG 8/19/2014 last rep type edit --->
+	<cfquery name="q_reptype_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(bth.time_stamp, '01-01-1900')) as reptype_time
+		FROM BRK_broker_type_history bth
+		LEFT JOIN mem_membership_window win ON bth.k_brk_broker = win.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>
+
+	<!--- WGG 8/19/2014 last payee edit --->
+	<cfquery name="q_payee_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(pay.time_stamp, '01-01-1900')) as payee_time
+		FROM BRK_broker__brk_payee_JOIN pay
+		LEFT JOIN mem_membership_window win ON pay.k_brk_broker = win.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>
+	
+	<!--- WGG 8/19/2014 last license edit --->
+	<cfquery name="q_lic_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(lic.time_stamp, '01-01-1900')) as license_time
+		FROM brk_license_history lic
+		LEFT JOIN mem_membership_window win ON lic.k_brk_broker = win.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>	
+
+	<!--- WGG 8/19/2014 last training edit --->
+	<cfquery name="q_train_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(trn.time_stamp, '01-01-1900')) as train_time
+		FROM brk_training_history trn
+		LEFT JOIN mem_membership_window win ON trn.k_brk_broker = win.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>	
+
+	<!--- WGG 8/19/2014 last doi edit --->
+	<cfquery name="q_doi_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(doi.time_stamp, '01-01-1900')) as doi_time
+		FROM BRK_Broker_DOI_history doi
+		LEFT JOIN mem_membership_window win ON doi.k_brk_broker = win.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>	
+	
+	<!--- WGG 8/19/2014 last EnO edit --->
+	<cfquery name="q_eno_edit" datasource="#application.sys_ds#">		
+		SELECT MAX(ISNULL(eno.time_stamp, '01-01-1900')) as eno_time
+		FROM BRK_Broker_ENO_history eno
+		LEFT JOIN mem_membership_window win ON eno.k_brk_broker = win.k_brk_broker
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>	
+
 </cfif>
+
 
 
 <form method="POST" action="#list_file#" name="#form_name#">
@@ -188,7 +246,9 @@ contract_time
 				<td>Last Upline Edit</td>
 
 					<cfoutput query = "q_upline_edit">
-					<td <cfif #DateDiff("s", upline_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+					<td <cfif upline_time EQ "">style="background-color:green"
+						<cfelseif upline_time EQ '01-01-1900'>style="background-color:green"
+						<cfelseif #DateDiff("s", upline_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
 						>#upline_time#</td>		
 					</cfoutput>	
@@ -208,17 +268,109 @@ contract_time
 				</tr>		
 			</cfif>				
 
-			<tr class="list_col_hdr">
-				<td>Last Team Edit</td>
+			<cfif cid NEQ 4>
+				<tr class="list_col_hdr">
+					<td>Last Team Edit</td>
+	
+						<cfoutput query = "q_team_edit">
+						<td <cfif #DateDiff("s", team_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+							<cfelse>style="background-color:green"</cfif>
+							>#team_time#</td>		
+						</cfoutput>	
+	
+				</tr>
+			</cfif>
 
-					<cfoutput query = "q_team_edit">
-					<td <cfif #DateDiff("s", team_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+	
+			<tr class="list_col_hdr">
+				<td>Last Agency Edit</td>
+
+					<cfoutput query = "q_agency_edit">
+					<td <cfif agency_time EQ "">style="background-color:green"
+						<cfelseif #DateDiff("s", agency_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#team_time#</td>		
+						>#agency_time#</td>		
+					</cfoutput>	
+
+			</tr>
+			
+			<tr class="list_col_hdr">
+				<td>Last Rep Type Edit</td>
+
+					<cfoutput query = "q_reptype_edit">
+					<td <cfif reptype_time EQ "">style="background-color:green"
+						<cfelseif reptype_time EQ '01-01-1900'>style="background-color:green"
+						<cfelseif #DateDiff("s", reptype_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#reptype_time#</td>		
 					</cfoutput>	
 
 			</tr>
 
+			<tr class="list_col_hdr">
+				<td>Last Payee Edit</td>
+
+					<cfoutput query = "q_payee_edit">
+					<td <cfif payee_time EQ "">style="background-color:green"
+						<cfelseif payee_time EQ '01-01-1900'>style="background-color:green"
+						<cfelseif #DateDiff("s", payee_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#payee_time#</td>		
+					</cfoutput>	
+
+			</tr>
+			
+			<tr class="list_col_hdr">
+				<td>Last License Edit</td>
+
+					<cfoutput query = "q_lic_edit">
+					<td <cfif license_time EQ "">style="background-color:green"
+						<cfelseif license_time EQ '01-01-1900'>style="background-color:green"
+						<cfelseif #DateDiff("s", license_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#license_time#</td>		
+					</cfoutput>	
+
+			</tr>			
+
+			<tr class="list_col_hdr">
+				<td>Last Training Edit</td>
+
+					<cfoutput query = "q_train_edit">
+					<td <cfif train_time EQ "">style="background-color:green"
+						<cfelseif train_time EQ '01-01-1900'>style="background-color:green"
+						<cfelseif #DateDiff("s", train_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#train_time#</td>		
+					</cfoutput>	
+
+			</tr>		
+
+			<tr class="list_col_hdr">
+				<td>Last DOI Edit</td>
+
+					<cfoutput query = "q_doi_edit">
+					<td <cfif doi_time EQ "">style="background-color:green"
+						<cfelseif doi_time EQ '01-01-1900'>style="background-color:green"
+						<cfelseif #DateDiff("s", doi_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#doi_time#</td>		
+					</cfoutput>	
+
+			</tr>
+
+			<tr class="list_col_hdr">
+				<td>Last EnO Edit</td>
+
+					<cfoutput query = "q_eno_edit">
+					<td <cfif eno_time EQ "">style="background-color:green"
+						<cfelseif eno_time EQ '01-01-1900'>style="background-color:green"
+						<cfelseif #DateDiff("s", eno_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<cfelse>style="background-color:green"</cfif>
+						>#eno_time#</td>		
+					</cfoutput>	
+
+			</tr>		
 	</table>
 
 </cfif>
