@@ -27,13 +27,15 @@ contract_time
 <!--- END set defaults for brk_sales_activity_log --->
 		
 <cfif isdefined('form.Submit')>
-
+	
+	<!--- WGG 8/20/2014 remove filter for open end dates, was causing page to break 
+			However, issues may have been introduced when multiple windows are present for a member--->
 	<cfquery name="q_sel_member" datasource="#application.sys_ds#">
 		SELECT	member_id,pk_mem_member_master,hicnbr,first_name,last_name,state,pk_mem_membership_window,start_date,end_date
 		FROM	mem_member_master
 		INNER JOIN mem_membership_window ON k_mem_member_master = pk_mem_member_master
 		WHERE	mem_member_master.cid = <cfqueryparam value="#val(application.cid)#" cfsqltype="cf_sql_integer"/>
-				AND end_date IS NULL
+				--AND end_date IS NULL -- I have no idea why bryan did this.
 				AND member_id = <cfqueryparam value="#Form.member_id#" cfsqltype="cf_sql_varchar"/>
 				OR hicnbr = <cfqueryparam value="#Form.member_id#" cfsqltype="cf_sql_varchar"/>
 	</cfquery>
@@ -58,8 +60,9 @@ contract_time
 		GROUP BY k_mem_membership_window
 	</cfquery>
 
+	<!--- WGG 8/20/2014 last calc date --->
 	<cfquery name="q_contract_date" datasource="#application.sys_ds#">		
-		SELECT MAX(ISNULL(last_calc_request, '01-01-1900')) as calc_date
+		SELECT ISNULL(MAX(ISNULL(last_calc_request, '01-01-1900')), '01-01-1900') as calc_date
 		FROM mem_membership_window win
 		INNER JOIN brk_entity_contract_payment_period bcpp ON bcpp.k_BRK_entity_contract = win.k_BRK_entity_contract
 		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
@@ -67,7 +70,7 @@ contract_time
 
 	<!--- WGG 8/14/2014 last contract edit --->
 	<cfquery name="q_contract_edit" datasource="#application.sys_ds#">		
-		SELECT MAX(ISNULL(becj.time_stamp, '01-01-1900')) as contract_time
+		SELECT ISNULL(MAX(ISNULL(becj.time_stamp, '01-01-1900')), '01-01-1900') as contract_time
 		FROM BRK_broker__BRK_entity_contract_JOIN becj
 		LEFT JOIN mem_membership_window win on becj.k_brk_broker = win.k_brk_broker
 		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
@@ -84,7 +87,7 @@ contract_time
 	<cfif cid EQ 4> 
 		<!--- WGG 8/15/2014 last universal contract edit, only check Cigna --->
 		<cfquery name="q_universal_edit" datasource="#application.sys_ds#">		
-			SELECT MAX(ISNULL(buc.time_stamp, '01-01-1900')) as universal_c_time
+			SELECT ISNULL(MAX(ISNULL(buc.time_stamp, '01-01-1900')), '01-01-1900') as universal_c_time
 			FROM BRK_broker__BRK_Universal_Contract_JOIN buc
 			LEFT JOIN mem_membership_window win ON win.k_brk_broker = buc.k_brk_broker
 			WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
@@ -157,6 +160,14 @@ contract_time
 		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
 	</cfquery>	
 
+	<!--- WGG 8/19/2014 member date of death --->
+	<cfquery name="q_date_of_death" datasource="#application.sys_ds#">		
+		SELECT mem.member_death_date as dod
+		FROM mem_member_master mem
+		LEFT JOIN mem_membership_window win ON mem.pk_mem_member_master = win.k_mem_member_master
+		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
+	</cfquery>	
+
 </cfif>
 
 
@@ -222,10 +233,12 @@ contract_time
 			</tr>	
 			
 			<tr class="list_col_hdr">
-				<td>Contract Run Date</td>
+				<td>Date of Last Calc</td>
 
 					<cfoutput query = "q_contract_date">
-					<td <cfif #DateDiff("m", calc_date, NOW())# GT 0>style="background-color:red"
+					<td <cfif len(calc_date) EQ 0>style="background-color:red"
+						<cfelseif calc_date EQ "">style="background-color:red"					
+						<cfelseif #DateDiff("m", calc_date, NOW())# GT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
 						>#calc_date#</td>		
 					</cfoutput>	
@@ -236,7 +249,8 @@ contract_time
 				<td>Last Contract Edit</td>
 
 					<cfoutput query = "q_contract_edit">
-					<td <cfif #DateDiff("s", contract_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+					<td <cfif contract_time EQ '01-01-1900'>style="background-color:green"
+						<cfelseif #DateDiff("s", contract_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
 						>#contract_time#</td>		
 					</cfoutput>
@@ -254,7 +268,7 @@ contract_time
 					</cfoutput>	
 
 			</tr>		
-			
+					
 			<cfif cid EQ 4>						
 				<tr class="list_col_hdr">
 					<td>Last Universal Contract Edit</td>
@@ -267,7 +281,7 @@ contract_time
 	
 				</tr>		
 			</cfif>				
-
+			
 			<cfif cid NEQ 4>
 				<tr class="list_col_hdr">
 					<td>Last Team Edit</td>
@@ -287,6 +301,7 @@ contract_time
 
 					<cfoutput query = "q_agency_edit">
 					<td <cfif agency_time EQ "">style="background-color:green"
+						<cfelseif agency_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", agency_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
 						>#agency_time#</td>		
@@ -371,6 +386,18 @@ contract_time
 					</cfoutput>	
 
 			</tr>		
+		
+			<tr class="list_col_hdr">
+				<td>DoD</td>
+
+					<cfoutput query = "q_date_of_death">
+					<td <cfif dod EQ "">style="background-color:green"
+						<cfelseif dod EQ '01-01-1900'>style="background-color:green"
+						<cfelse>style="background-color:red""</cfif>
+						>#dod#</td>		
+					</cfoutput>	
+
+			</tr>	
 	</table>
 
 </cfif>
