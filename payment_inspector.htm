@@ -35,9 +35,14 @@ contract_time
 		FROM	mem_member_master
 		INNER JOIN mem_membership_window ON k_mem_member_master = pk_mem_member_master
 		WHERE	mem_member_master.cid = <cfqueryparam value="#val(application.cid)#" cfsqltype="cf_sql_integer"/>
-				--AND end_date IS NULL -- I have no idea why bryan did this.
 				AND member_id = <cfqueryparam value="#Form.member_id#" cfsqltype="cf_sql_varchar"/>
 				OR hicnbr = <cfqueryparam value="#Form.member_id#" cfsqltype="cf_sql_varchar"/>
+		/* WGG this query previously had null end dates only, I've changed this to pull the most recent window */
+		ORDER BY CASE WHEN mem_membership_window.end_date is not null 
+              then 2 
+              else 1 
+         end asc, 
+         mem_membership_window.end_date DESC
 	</cfquery>
 	
 	<cfset k_mem_membership_window = q_sel_member.pk_mem_membership_window>
@@ -97,7 +102,7 @@ contract_time
 
 	<!--- WGG 8/15/2014 last team edit --->
 	<cfquery name="q_team_edit" datasource="#application.sys_ds#">		
-		SELECT MAX(ISNULL(btj.time_stamp, '01-01-1900')) as team_time
+		SELECT ISNULL(MAX(ISNULL(btj.time_stamp, '01-01-1900')),'01-01-1900') as team_time
 		FROM BRK_broker__TEA_team__JOIN btj
 		LEFT JOIN mem_membership_window win ON btj.k_brk_broker = win.k_brk_broker
 		WHERE pk_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
