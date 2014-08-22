@@ -292,7 +292,9 @@ contract_time
 					<td>Last Team Edit</td>
 	
 						<cfoutput query = "q_team_edit">
-						<td <cfif #DateDiff("s", team_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
+						<td <cfif team_time EQ "">style="background-color:green"
+							<cfelseif team_time EQ '01-01-1900'>style="background-color:green"
+							<cfelseif #DateDiff("s", team_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 							<cfelse>style="background-color:green"</cfif>
 							>#team_time#</td>		
 						</cfoutput>	
