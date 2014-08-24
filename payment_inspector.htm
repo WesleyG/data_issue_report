@@ -245,7 +245,11 @@ contract_time
 						<cfelseif calc_date EQ "">style="background-color:red"					
 						<cfelseif #DateDiff("m", calc_date, NOW())# GT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#calc_date#</td>		
+						
+						<cfif calc_date EQ '01-01-1900'>>
+						<cfelse>>#calc_date#
+						</cfif>
+						</td>		
 					</cfoutput>	
 
 			</tr>
@@ -257,8 +261,12 @@ contract_time
 					<td <cfif contract_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", contract_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#contract_time#</td>		
-					</cfoutput>
+						
+						<cfif contract_time EQ '01-01-1900'>>
+						<cfelse>>#contract_time#
+						</cfif>
+						</td>		
+					</cfoutput>	
 			</tr>	
 			
 			<tr class="list_col_hdr">
@@ -269,7 +277,11 @@ contract_time
 						<cfelseif upline_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", upline_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#upline_time#</td>		
+						
+						<cfif upline_time EQ '01-01-1900'>>
+						<cfelse>>#upline_time#
+						</cfif>
+						</td>		
 					</cfoutput>	
 
 			</tr>		
@@ -281,8 +293,12 @@ contract_time
 						<cfoutput query = "q_universal_edit">
 						<td <cfif #DateDiff("s", universal_c_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 							<cfelse>style="background-color:green"</cfif>
-							>#universal_c_time#</td>		
-						</cfoutput>	
+						
+						<cfif universal_c_time EQ '01-01-1900'>>
+						<cfelse>>#universal_c_time#
+						</cfif>
+						</td>		
+					</cfoutput>	
 	
 				</tr>		
 			</cfif>				
@@ -296,8 +312,12 @@ contract_time
 							<cfelseif team_time EQ '01-01-1900'>style="background-color:green"
 							<cfelseif #DateDiff("s", team_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 							<cfelse>style="background-color:green"</cfif>
-							>#team_time#</td>		
-						</cfoutput>	
+						
+						<cfif team_time EQ '01-01-1900'>>
+						<cfelse>>#team_time#
+						</cfif>
+						</td>		
+					</cfoutput>	
 	
 				</tr>
 			</cfif>
@@ -311,7 +331,11 @@ contract_time
 						<cfelseif agency_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", agency_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#agency_time#</td>		
+						
+						<cfif agency_time EQ '01-01-1900'>>
+						<cfelse>>#agency_time#
+						</cfif>
+						</td>		
 					</cfoutput>	
 
 			</tr>
@@ -324,7 +348,11 @@ contract_time
 						<cfelseif reptype_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", reptype_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#reptype_time#</td>		
+						
+						<cfif reptype_time EQ '01-01-1900'>>
+						<cfelse>>#reptype_time#
+						</cfif>
+						</td>		
 					</cfoutput>	
 
 			</tr>
@@ -337,7 +365,11 @@ contract_time
 						<cfelseif payee_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", payee_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#payee_time#</td>		
+						
+						<cfif payee_time EQ '01-01-1900'>>
+						<cfelse>>#payee_time#
+						</cfif>
+						</td>		
 					</cfoutput>	
 
 			</tr>
@@ -350,7 +382,11 @@ contract_time
 						<cfelseif license_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", license_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#license_time#</td>		
+						
+						<cfif license_time EQ '01-01-1900'>>
+						<cfelse>>#license_time#
+						</cfif>
+						</td>		
 					</cfoutput>	
 
 			</tr>			
@@ -363,7 +399,11 @@ contract_time
 						<cfelseif train_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", train_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#train_time#</td>		
+						
+						<cfif train_time EQ '01-01-1900'>>
+						<cfelse>>#train_time#
+						</cfif>
+						</td>		
 					</cfoutput>	
 
 			</tr>		
@@ -376,7 +416,11 @@ contract_time
 						<cfelseif doi_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", doi_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#doi_time#</td>		
+						
+						<cfif doi_time EQ '01-01-1900'>>
+						<cfelse>>#doi_time#
+						</cfif>
+						</td>		
 					</cfoutput>	
 
 			</tr>
@@ -389,9 +433,12 @@ contract_time
 						<cfelseif eno_time EQ '01-01-1900'>style="background-color:green"
 						<cfelseif #DateDiff("s", eno_time, #q_contract_date.calc_date#)# LT 0>style="background-color:red"
 						<cfelse>style="background-color:green"</cfif>
-						>#eno_time#</td>		
+						
+						<cfif eno_time EQ '01-01-1900'>>
+						<cfelse>>#eno_time#
+						</cfif>
+						</td>		
 					</cfoutput>	
-
 			</tr>		
 		
 			<tr class="list_col_hdr">
