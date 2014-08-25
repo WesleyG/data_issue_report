@@ -1,0 +1,27 @@
+
+SELECT DISTINCT --win.pk_mem_membership_window
+	 mem.member_id
+	,win.start_date
+	,win.end_date
+	,brk.broker_id AS Broker_ID
+	,brk.name AS Broker_Name
+	,upl.broker_id AS Upline_ID_by_App
+	,upl.name AS Upline_Name_by_App
+	,upl2.broker_id AS Upline_ID_by_Eff
+	,upl2.name AS Upline_Name_by_Eff
+FROM mem_membership_window win
+	INNER JOIN brk_broker_entity_relation ber 
+		ON ber.k_brk_broker = win.k_brk_broker
+			AND ber.start_date <= win.application_date
+			AND ISNULL(ber.end_date, '01-01-2099') >= win.application_date
+	INNER JOIN mem_member_master mem on win.k_mem_member_master = mem.pk_mem_member_master
+	INNER JOIN brk_broker brk on brk.pk_brk_broker = win.k_brk_broker
+	INNER JOIN brk_broker upl on upl.pk_brk_broker = ber.k_brk_broker__parent
+	INNER JOIN brk_broker_entity_relation ber2
+		ON ber2.k_brk_broker = win.k_brk_broker
+			AND ber.start_date <= win.start_date
+			AND ISNULL(ber.end_date, '01-01-2099') >= win.start_date
+	INNER JOIN brk_broker upl2 on upl2.pk_brk_broker = ber2.k_brk_broker__parent
+WHERE win.cid = 4
+	AND ber.k_brk_broker_entity_relation_type = ber2.k_brk_broker_entity_relation_type
+	AND upl.broker_id <> upl2.broker_id
