@@ -445,10 +445,10 @@ contract_time
 				<td>DoD</td>
 
 					<cfoutput query = "q_date_of_death">
-					<td <cfif dod EQ "">style="background-color:green"
-						<cfelseif dod EQ '01-01-1900'>style="background-color:green"
-						<cfelse>style="background-color:red""</cfif>
-						>#dod#</td>		
+					<td <cfif dod EQ "">style="background-color:green"></td>
+						<cfelseif dod EQ '01-01-1900'>style="background-color:green"></td>
+						<cfelseif dod EQ '12-31-9999'>style="background-color:green"></td>
+						<cfelse>style="background-color:red">#dod#</td>	</cfif>		
 					</cfoutput>	
 
 			</tr>	
