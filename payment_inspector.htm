@@ -62,6 +62,7 @@ contract_time
 		FROM TAG_data_issues
 		WHERE k_mem_membership_window = <cfqueryparam value="#val(k_mem_membership_window)#" cfsqltype="cf_sql_integer"/>
 		AND cid = <cfqueryparam value="#val(application.cid)#" cfsqltype="cf_sql_integer"/>
+		AND is_resolved <> 1
 		GROUP BY k_mem_membership_window
 	</cfquery>
 
