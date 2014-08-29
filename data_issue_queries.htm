@@ -584,7 +584,7 @@ WHERE 1=1
 <cfquery name="q_resolve_line_item" datasource="#application.sys_ds#" result="resolve_result">
   /* Resolve Missing Line Item Issues */
   UPDATE tdi
-  SET tdi.is_resolved = 1
+  SET tdi.is_resolved = 1, tdi.date_resolved = GETDATE()
   FROM tag_data_issues tdi
     INNER JOIN mem_membership_window w2
       ON w2.pk_mem_membership_window = tdi.k_mem_membership_window
@@ -595,7 +595,7 @@ WHERE 1=1
 
 <cfquery name="q_resolve_agency" datasource="#application.sys_ds#" result="resolve_result">
 	UPDATE tdi
-	SET tdi.is_resolved = 1
+	SET tdi.is_resolved = 1, tdi.date_resolved = GETDATE()
 	FROM tag_data_issues tdi
 		INNER JOIN mem_membership_window w2
 			ON w2.pk_mem_membership_window = tdi.k_mem_membership_window
@@ -608,7 +608,7 @@ WHERE 1=1
 
 <cfquery name="q_resolve_team_goal" datasource="#application.sys_ds#">
 UPDATE tdi
-SET tdi.is_resolved = 1
+SET tdi.is_resolved = 1, tdi.date_resolved = GETDATE()
 FROM tag_data_issues tdi
 	LEFT JOIN vw_tea_team_metric_period ttmp
 	ON ttmp.k_tea_team = tdi.k_tea_team
@@ -620,7 +620,7 @@ WHERE ttmp.cid = 7
 
 <cfquery name="q_resolve_app_outside_team" datasource="#application.sys_ds#">
 UPDATE tdi
-SET tdi.is_resolved = 1
+SET tdi.is_resolved = 1, tdi.date_resolved = GETDATE()
 FROM tag_data_issues tdi
 
 	LEFT JOIN mem_membership_window w
