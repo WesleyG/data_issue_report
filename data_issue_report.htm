@@ -780,11 +780,12 @@ function SaveComment() {
             <td align="center" width="85">
               Date Found
             </td>
-			<!--- WGG
-            <!--- WGG 4 --->
+
+
             <td align="center">
               Date Resolved
             </td>
+			<!--- WGG
             <!--- WGG 5 --->
             <td align="center">
               Date Ignored
@@ -907,13 +908,11 @@ function SaveComment() {
             <td align="center" width="85">
               #dateformat(date_opened,"medium")#
             </td>
-			
-			<!--- WGG hiding resolved and ignored dates
-            <!--- WGG 4 --->
+
             <td align="center">
-              #date_closed#
+              #date_resolved#
             </td>
-            <!--- WGG 5 --->
+			<!--- WGG hiding ignored dates
             <td align="center">
               #date_ignored#
             </td>
