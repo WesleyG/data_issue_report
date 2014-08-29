@@ -1,0 +1,63 @@
+<cfinclude template = "../cf_includes/cf_PRE_template_include.htm">
+<cfparam name = "display_mode" default = "">
+
+<!--- set form and list files --->
+<cfset form_name="list_ticket_report.htm">
+<cfset list_file="list_ticket_report.htm">
+
+<!--- page title --->
+<cfset page_title="Ticket Report">
+<cfsavecontent variable="page_description">
+
+</cfsavecontent>
+
+<!--- page header --->
+<cfinclude template = "../templates/header.htm">
+
+
+<!--- set defaults for brk_sales_activity_log --->
+<cfset default_query_name = "">
+<cfset default_variables = "
+hours_worked
+k_data_source
+pk_ticket
+">
+<cfinclude template="../cf_includes/set_defaults.htm">
+<!--- END set defaults for brk_sales_activity_log --->
+
+<cfif k_data_source EQ ''>
+	<cfset k_data_source = 3>
+</cfif>
+
+<style>
+.wufoo_container {
+	height:2000px;
+}
+</style>
+
+
+
+
+	<div style="float:left">
+	<cfquery name="total_hours_by_client" datasource="#application.ticket_ds#">
+		SELECT 
+			 t.cid AS Client
+			,sum(ttt.time_tracked) AS hours_worked
+		FROM ticket_time_tracking ttt
+			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
+		WHERE ttt.date_tracked BETWEEN '01-01-2012' AND '12-31-2014' -- date variables here
+		GROUP BY t.cid
+	</cfquery>
+	<h2>Hours by Client</h2>
+	<table style="border-width:1px; border-style:solid;">
+	<cfloop query = "total_hours_by_client"> 
+		<tr>
+			<td><cfoutput>#cid# -- </cfoutput></td>
+			<td><cfoutput>#Hours_worked#</cfoutput></td>
+		</tr>
+	</cfloop>
+	</table>
+
+	</div>
+
+		
