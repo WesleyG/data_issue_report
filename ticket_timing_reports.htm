@@ -52,7 +52,7 @@ pk_ticket
 	<table style="border-width:1px; border-style:solid;">
 	<cfloop query = "total_hours_by_client"> 
 		<tr>
-			<td><cfoutput>#cid# -- </cfoutput></td>
+			<td><cfoutput>#Client# -- </cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->
 			<td><cfoutput>#Hours_worked#</cfoutput></td>
 		</tr>
 	</cfloop>
