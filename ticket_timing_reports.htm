@@ -29,6 +29,13 @@ pk_ticket
 	<cfset k_data_source = 3>
 </cfif>
 
+<!--- WGG 8/31/2014 creates white backbround instead of grey border halfway up page --->
+<style>
+.wufoo_container {
+	height:2000px;
+}
+</style>
+
 
 	<div style="float:left">
 	<cfquery name="total_hours_by_client" datasource="#application.ticket_ds#">
@@ -51,10 +58,54 @@ pk_ticket
 		WHERE ttt.date_tracked BETWEEN '01-01-2012' AND '12-31-2014' -- date variables here
 		GROUP BY t.cid
 	</cfquery>
-	<h2>Hours by Client</h2>
-	<!--- 
-	<table style="border-width:1px; border-style:solid;">
-	--->
+	<h2 align="center">Hours<br> by Client</h2>
+	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
+		<tr class="list_col_hdr">
+				<td><b>Client</b></td>
+				<td><b>Hours</b></td>		
+		</tr>
+		<cfloop query = "total_hours_by_client"> 
+			 <tr class="list_col_hdr">
+				<td><cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->
+				<td><cfoutput>#Hours_worked#</cfoutput></td>
+			</tr>
+		</cfloop>
+	</table>
+	</div>
+	
+<!--- ##################################################
+###########################################################
+##################### ADD THESE QUERIES ################....
+
+SELECT 
+	ttt.login_id
+	,SUM(ttt.time_tracked)
+FROM ticket_time_tracking ttt
+	INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
+WHERE ttt.date_tracked = DATEDIFF(DAY, 0, GETDATE())
+GROUP BY ttt.login_id
+
+
+SELECT
+	ttt.login_id
+	,SUM(ttt.time_tracked)
+FROM ticket_time_tracking ttt
+	INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
+WHERE ttt.date_tracked = (
+	SELECT  DATEADD(DAY, CASE DATENAME(WEEKDAY, GETDATE()) 
+                        WHEN 'Sunday' THEN -2 
+                        WHEN 'Monday' THEN -3 
+                        ELSE -1 END, DATEDIFF(DAY, 0, GETDATE()))
+	)
+GROUP BY ttt.login_id
+
+#############################################
+#############################################
+############################################
+--->
+	
+	<div style="float:left; margin-left:40px">
+	<h2 align="center">Hours Today<br> by Individual</h2>
 	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
 		<tr class="list_col_hdr">
 				<td><b>Client</b></td>
@@ -69,5 +120,20 @@ pk_ticket
 	</table>
 
 	</div>
+	
+	<div style="float:left; margin-left:40px">
+	<h2 align="center">Hours Last Business Day<br> by Individual</h2>
+	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
+		<tr class="list_col_hdr">
+				<td><b>Client</b></td>
+				<td><b>Hours</b></td>		
+		</tr>
+		<cfloop query = "total_hours_by_client"> 
+			 <tr class="list_col_hdr">
+				<td><cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->
+				<td><cfoutput>#Hours_worked#</cfoutput></td>
+			</tr>
+		</cfloop>
+	</table>
 
-		
+	</div>
