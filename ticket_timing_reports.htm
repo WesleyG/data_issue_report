@@ -29,19 +29,22 @@ pk_ticket
 	<cfset k_data_source = 3>
 </cfif>
 
-<style>
-.wufoo_container {
-	height:2000px;
-}
-</style>
-
-
-
 
 	<div style="float:left">
 	<cfquery name="total_hours_by_client" datasource="#application.ticket_ds#">
 		SELECT 
-			 t.cid AS Client
+			 t.cid AS client_cid
+			 ,client_name = 
+				 CASE t.cid
+					WHEN 2 THEN 'CDPHP'
+					WHEN 3 THEN 'HCA'
+					WHEN 4 THEN 'CIGNA'
+					WHEN 5 THEN 'SCAN'
+					WHEN 7 THEN 'MOLINA MAPD'
+					WHEN 14 THEN 'MOLINA MP'
+					WHEN 15 THEN 'SOUNDPATH'
+					ELSE 'Unknown'
+				END
 			,sum(ttt.time_tracked) AS hours_worked
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
@@ -49,13 +52,20 @@ pk_ticket
 		GROUP BY t.cid
 	</cfquery>
 	<h2>Hours by Client</h2>
+	<!--- 
 	<table style="border-width:1px; border-style:solid;">
-	<cfloop query = "total_hours_by_client"> 
-		<tr>
-			<td><cfoutput>#Client# -- </cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->
-			<td><cfoutput>#Hours_worked#</cfoutput></td>
+	--->
+	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
+		<tr class="list_col_hdr">
+				<td><b>Client</b></td>
+				<td><b>Hours</b></td>		
 		</tr>
-	</cfloop>
+		<cfloop query = "total_hours_by_client"> 
+			 <tr class="list_col_hdr">
+				<td><cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->
+				<td><cfoutput>#Hours_worked#</cfoutput></td>
+			</tr>
+		</cfloop>
 	</table>
 
 	</div>
