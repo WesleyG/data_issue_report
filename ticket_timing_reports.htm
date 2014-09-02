@@ -141,7 +141,10 @@ pk_ticket
 					</cfif>
 				<td><cfoutput>#ticket#</cfoutput></td>
 				<td><cfoutput>#comment#</cfoutput></td>
+				<!---
 				<td><cfoutput>#date_tracked#</cfoutput></td>
+				--->
+				<td><cfoutput>#TimeFormat(date_tracked, "hh:mm tt")#</cfoutput></td>
 				<td><cfoutput>#time_tracked#</cfoutput></td>
 			</tr>
 		</cfloop>
