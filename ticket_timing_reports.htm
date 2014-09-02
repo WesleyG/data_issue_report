@@ -76,7 +76,7 @@ pk_ticket
 	<cfquery name="wes_hours_experiment" datasource="#application.ticket_ds#">
 		SELECT t.cid
 			 ,client_name = 
-				 CASE t.cid
+				 CASE t.k_clnt_client
 					WHEN 2 THEN 'CDPHP'
 					WHEN 3 THEN 'HCA'
 					WHEN 4 THEN 'CIGNA'
@@ -86,45 +86,51 @@ pk_ticket
 					WHEN 15 THEN 'SOUNDPATH'
 					ELSE 'Unknown'
 				END
+			,t.subject AS ticket
 			,ttt.comment
-			,time_stamp
-			,time_tracked
+			,ttt.date_tracked
+			,ttt.time_tracked
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked = DATEDIFF(DAY, 0, GETDATE())
+		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
+			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
 			AND login_id = 'HCA6'
-		ORDER BY time_stamp
+		ORDER BY ttt.time_tracked
 	</cfquery>
 	
 	<cfquery name="wes_hours_total" datasource="#application.ticket_ds#">
 		SELECT sum(time_tracked) AS wes_hours
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked = DATEDIFF(DAY, 0, GETDATE())
+		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
+			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
 			AND login_id = 'HCA6'
 		GROUP BY login_id
 	</cfquery>	
 	
 
-	<h2 align="center">Wes Hours (experiment</h2>
+	<h2 align="center">Wes Hours (experiment)</h2>
 	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
 		<tr class="list_col_hdr">
 				<td><b>Client</b></td>
-				<td><b>Task</b></td>		
+				<td><b>Ticket</b></td>	
+				<td><b>Comment</b></td>		
 				<td><b>Time Started</b></td>	
 				<td><b>Hours</b></td>									
 		</tr>
 		<cfloop query = "wes_hours_experiment"> 
 			 <tr class="list_col_hdr">
 				<td><cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->
+				<td><cfoutput>#ticket#</cfoutput></td>
 				<td><cfoutput>#comment#</cfoutput></td>
-				<td><cfoutput>#time_stamp#</cfoutput></td>
+				<td><cfoutput>#date_tracked#</cfoutput></td>
 				<td><cfoutput>#time_tracked#</cfoutput></td>
 			</tr>
 		</cfloop>
 		
 		<cfloop query = "wes_hours_total"> 
 		<tr class="list_col_hdr">
+				<td></td>
 				<td></td>
 				<td></td>
 				<td><b> TotalHours</b></td>		
