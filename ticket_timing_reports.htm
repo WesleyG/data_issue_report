@@ -84,8 +84,21 @@ pk_ticket
 					WHEN 7 THEN 'MOLINA MAPD'
 					WHEN 14 THEN 'MOLINA MP'
 					WHEN 15 THEN 'SOUNDPATH'
+					WHEN 99 THEN 'HCA'
 					ELSE 'Unknown'
 				END
+			 ,client_name2 = 
+				 CASE t.cid
+					WHEN 2 THEN 'CDPHP'
+					WHEN 3 THEN 'HCA'
+					WHEN 4 THEN 'CIGNA'
+					WHEN 5 THEN 'SCAN'
+					WHEN 7 THEN 'MOLINA MAPD'
+					WHEN 14 THEN 'MOLINA MP'
+					WHEN 15 THEN 'SOUNDPATH'
+					WHEN 99 THEN 'HCA'
+					ELSE 'Unknown'
+				END			
 			,t.subject AS ticket
 			,ttt.comment
 			,ttt.date_tracked
@@ -95,7 +108,7 @@ pk_ticket
 		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
 			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
 			AND login_id = 'HCA6'
-		ORDER BY ttt.time_tracked
+		ORDER BY ttt.date_tracked
 	</cfquery>
 	
 	<cfquery name="wes_hours_total" datasource="#application.ticket_ds#">
@@ -110,7 +123,7 @@ pk_ticket
 	
 
 	<h2 align="center">Wes Hours (experiment)</h2>
-	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
+	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width="400">
 		<tr class="list_col_hdr">
 				<td><b>Client</b></td>
 				<td><b>Ticket</b></td>	
@@ -120,7 +133,12 @@ pk_ticket
 		</tr>
 		<cfloop query = "wes_hours_experiment"> 
 			 <tr class="list_col_hdr">
-				<td><cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->
+				<td>
+					<cfif client_name EQ 'Unknown'>
+						<cfoutput>#client_name2#</cfoutput></td>
+					<cfelse>
+						<cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->	
+					</cfif>
 				<td><cfoutput>#ticket#</cfoutput></td>
 				<td><cfoutput>#comment#</cfoutput></td>
 				<td><cfoutput>#date_tracked#</cfoutput></td>
