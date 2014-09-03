@@ -105,7 +105,7 @@ pk_ticket
 			,ttt.time_tracked
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
+		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE())
 			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
 			AND login_id = 'HCA6'
 		ORDER BY ttt.date_tracked
@@ -115,7 +115,7 @@ pk_ticket
 		SELECT sum(time_tracked) AS wes_hours
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
+		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE())
 			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
 			AND login_id = 'HCA6'
 		GROUP BY login_id
@@ -144,7 +144,7 @@ pk_ticket
 				<!---
 				<td><cfoutput>#date_tracked#</cfoutput></td>
 				--->
-				<td><cfoutput>#TimeFormat(date_tracked, "hh:mm tt")#</cfoutput></td>
+				<td><cfoutput>#dateformat(date_tracked, "mm-dd-yy")# #TimeFormat(date_tracked, "hh:mm tt")#</cfoutput></td>
 				<td><cfoutput>#time_tracked#</cfoutput></td>
 			</tr>
 		</cfloop>
@@ -179,10 +179,11 @@ pk_ticket
 			,sum(ttt.time_tracked) AS hours_worked
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked = DATEDIFF(DAY, 0, GETDATE())
+		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE())
+			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+2)
 		GROUP BY t.cid
 	</cfquery>
-	<h2 align="center">Tot. Hours<br> by Client</h2>
+	<h2 align="center">Today's' Hours<br> by Client</h2>
 	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
 		<tr class="list_col_hdr">
 				<td><b>Client</b></td>
@@ -196,7 +197,43 @@ pk_ticket
 		</cfloop>
 	</table>
 	</div>
-	
+
+	<div style="float:left; margin-left:40px">
+	<cfquery name="yesterdays_hours_by_client" datasource="#application.ticket_ds#">
+		SELECT 
+			 t.cid AS client_cid
+			 ,client_name = 
+				 CASE t.cid
+					WHEN 2 THEN 'CDPHP'
+					WHEN 3 THEN 'HCA'
+					WHEN 4 THEN 'CIGNA'
+					WHEN 5 THEN 'SCAN'
+					WHEN 7 THEN 'MOLINA MAPD'
+					WHEN 14 THEN 'MOLINA MP'
+					WHEN 15 THEN 'SOUNDPATH'
+					ELSE 'Unknown'
+				END
+			,sum(ttt.time_tracked) AS hours_worked
+		FROM ticket_time_tracking ttt
+			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
+		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
+			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
+		GROUP BY t.cid
+	</cfquery>
+	<h2 align="center">Yesterday's' Hours<br> by Client</h2>
+	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
+		<tr class="list_col_hdr">
+				<td><b>Client</b></td>
+				<td><b>Hours</b></td>		
+		</tr>
+		<cfloop query = "yesterdays_hours_by_client"> 
+			 <tr class="list_col_hdr">
+				<td><cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->
+				<td><cfoutput>#Hours_worked#</cfoutput></td>
+			</tr>
+		</cfloop>
+	</table>
+	</div>
 	<cfquery name="hours_today_by_ind" datasource="#application.ticket_ds#">
 		SELECT 
 			ttt.login_id AS login_id
