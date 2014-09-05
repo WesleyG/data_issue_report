@@ -52,8 +52,8 @@ WGG --->
   
 	SELECT
 		w.cid -- cid
-		,1 -- issues type: missing line item
-		,1 -- reason not known
+		,6 -- issues type: missing line item
+		,12 -- reason not known
 		,0 -- not ignored
 		,GETDATE() -- date opened
 		,0 -- is resolved
@@ -205,6 +205,88 @@ WGG --->
 		</cfif>
 	</cfquery>
 </cfif>
+
+<!--- WGG 9/5/2014 HCA ticket 248 - adding search for app rec after start date - 2014 or greater only --->
+
+<cfquery name="q_pop_app_after_start" datasource="#application.sys_ds#">
+	INSERT INTO TAG_data_issues
+		(cid
+		,k_tag_issue_type
+		,k_tag_issue_reason
+		,is_ignored
+		,date_opened
+		,is_resolved
+		,k_brk_broker
+		,k_mem_member_master
+		,k_mem_membership_window
+		,k_brk_entity_contract
+		,k_tag_issue_status_id)
+
+	SELECT
+		w.cid -- cid
+		,6 -- issues type: App Rec After Start Date
+		,12 -- reason: app afer start date
+		,0 -- not ignored
+		,GETDATE() -- date opened
+		,0 -- is resolved
+		,w.k_brk_broker
+		,w.k_mem_member_master
+		,w.pk_mem_membership_window
+		,w.k_brk_entity_contract
+		,0 -- issue status is needs review
+  
+	FROM mem_membership_window w
+		LEFT JOIN TAG_data_issues
+			ON TAG_data_issues.k_mem_membership_window = w.pk_mem_membership_window
+			AND TAG_data_issues.k_tag_issue_type = 6
+		LEFT JOIN brk_broker b
+			ON w.k_brk_broker = b.pk_brk_broker
+	WHERE 1=1
+		/* do not insert issues already in data issue table for 
+      		this issue type */
+		AND (
+				TAG_data_issues.k_mem_membership_window is NULL
+				OR TAG_data_issues.k_tag_issue_type <> 6)
+		/* select client */
+		AND w.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+		/* App Received after Effective Date */
+		AND w.application_date > w.start_date
+		/* cid 4 previously had an issue where app rec is wrong,
+			excluding pre2014 enrollments to avoid a large influx of 
+			errors */
+		AND w.start_date > '12-31-2013'
+		/* Window is not cancelled */
+		AND (w.end_date IS NULL OR w.start_date IS NULL or w.start_date <> w.end_date)
+		/* Do not include ignored reps */
+		AND w.k_brk_broker not in (
+			SELECT ignore.k_brk_broker
+			FROM tag_ignored_reps ignore)
+    	AND (
+      		/* Window has an effective date in last 3 months */
+			(w.start_date is NULL OR (w.start_date BETWEEN DATEADD(month, -3, GETDATE()) AND GETDATE()))
+			OR
+			/* Window has a transaction in Last 2 months */
+			(EXISTS (SELECT k_mem_membership_window FROM brk_Commission_transaction
+				INNER JOIN brk_entity_contract_payment_period 
+				ON k_brk_entity_contract_payment_period = pk_brk_entity_contract_payment_period
+			WHERE k_mem_membership_window = w.pk_mem_membership_window
+				AND payment_period >= DATEADD(month, -2, GETDATE())))
+			)
+
+		<cfif cid EQ 5>
+		/* For Scan, eliminate Medi-Cal enrollments for external contracts */
+		AND (
+			w.k_cms_contract <> 12 
+			OR 
+			(w.k_cms_contract = 12 
+				AND w.k_BRK_entity_contract 
+				IN (148, 171, 142, 160, 145, 146, 193, 192, 149, 143) <!--- WGG 6/26/2014 removed contract 210, per Wing it is external --->
+			)
+		)
+		/* For Scan, eliminate Miscellaneous contract */
+		AND ISNULL(w.k_BRK_entity_contract, 1) <> 164
+		</cfif>
+</cfquery>
 
 <!--- WGG 7/1/2014 note that the order is important no agency supercedes app outside agency --->
 <cfif cid NEQ 15 AND cid NEQ 4> <!--- WGG 7/23/2014 SPH and Cigna do not use agencies --->
