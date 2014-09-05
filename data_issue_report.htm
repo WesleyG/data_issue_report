@@ -444,7 +444,8 @@ function SaveComment() {
         WHEN 2  THEN 'Broker has no Agency'
 		WHEN 3  THEN 'App rec outside Agency dates'	
 		WHEN 4  THEN 'App rec outside team'	
-		WHEN 5  THEN 'No Goal'								
+		WHEN 5  THEN 'No Goal'	
+		WHEN 6  THEN 'App date after start'							
         ELSE 'Unknown'
 
         END
@@ -469,6 +470,7 @@ function SaveComment() {
 			WHEN 9  THEN 'App Rec Outside Team'
 			WHEN 10  THEN 'App Rec Outside Regional Team'
 			WHEN 11  THEN 'No Team Goal'
+			WHEN 12  THEN 'App date after start'
         	ELSE 'Unknown'
 		END
 	,k_tag_issue_reason
