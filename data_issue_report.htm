@@ -515,24 +515,16 @@ function SaveComment() {
       <table id="cpy" class="list_table scrolling" scroll_height="700" width="100%">
 		<tr class="list_col_hdr">
 
-          <td align="center" width="110">
+          <td align="center">
             Status
           </td>
 
-          <td align="center" width="225">
+          <td align="center">
             Issue Type
-          </td>
-		          
-          <td align="center" width="195">
-            Issue Reason
           </td>
 		
 		  <td align="center">
 			Rep Search
-          </td>
-
-		<td align="center">
-			Member Search
           </td>
 
           <td rowspan="2" width="125" align="center">
@@ -542,69 +534,39 @@ function SaveComment() {
           </td>
         </tr>
         <tr class="list_even_odd">
-          	<!--- WGG 9/6/2014 Status dropdown --->
+			<!--- WGG 9/6/2014 Status dropdown --->
 			<td align="center">
-            <cfselect query="q_sel_status" 
-              id="form_ticket_status"
-              value="issue_status_id" 
-              display="issue_status_name" 
-              name="form_ticket_status" 
-              selected="#form_ticket_status#" 
-              multiple="yes" 
-              size="2">
-            </cfselect><br><br>
-            <button type="button" id="StatusSub" onclick="Clear_Status()">
-              Clear
-            </button>
-          </td>
+				<cfselect query="q_sel_status" 
+					id="form_ticket_status"
+					value="issue_status_id" 
+					display="issue_status_name" 
+					name="form_ticket_status" 
+					selected="#form_ticket_status#" 
+					multiple="yes" 
+					size="2">
+				</cfselect><br><br>
+				
+				<button type="button" id="StatusSub" onclick="Clear_Status()">
+					Clear
+				</button>
+			</td>
 
-		
-          <td align="center">
-            <cfselect query="q_sel_resolved" 
-              id="form_ticket_resolved"
-              value="is_resolved" 
-              display="resolved" 
-              name="form_ticket_resolved" 
-              selected="#form_ticket_resolved#" 
-              multiple="yes" 
-              size="3">
-            </cfselect><br><br>
-            <button type="button" id="StatusSub" onclick="Clear_Resolved()">
-              Clear
-            </button>
-          </td>
-
-		<!--- WGG 6/25/2014 Issue Type --->
-          <td align="center">
-            <cfselect query="q_sel_type" 
-              id="form_ticket_type"
-              value="k_tag_issue_type" 
-              display="type" 
-              name="form_ticket_type" 
-              selected="#form_ticket_type#" 
-              multiple="yes" 
-              size="3">
-            </cfselect><br><br>
-            <button type="button" id="StatusSub" onclick="Clear_Type()">
-              Clear
-            </button>
-          </td>
-		
-		<!--- WGG 6/25/2014 Issue Reason --->
-          <td align="center">
-            <cfselect query="q_sel_reason" 
-              id="form_ticket_reason"
-              value="k_tag_issue_reason" 
-              display="reason" 
-              name="form_ticket_reason" 
-              selected="#form_ticket_reason#" 
-              multiple="yes" 
-              size="3">
-            </cfselect><br><br>
-            <button type="button" id="StatusSub" onclick="Clear_Reason()">
-              Clear
-            </button>
-          </td>
+			<!--- WGG 6/25/2014 Issue Type --->
+			<td align="center">
+				<cfselect query="q_sel_type" 
+					id="form_ticket_type"
+					value="k_tag_issue_type" 
+					display="type" 
+					name="form_ticket_type" 
+					selected="#form_ticket_type#" 
+					multiple="yes" 
+					size="3">
+				</cfselect><br><br>
+				
+				<button type="button" id="StatusSub" onclick="Clear_Type()">
+					Clear
+				</button>
+			</td>
 		
 		<!--- WGG 8/9/2014 Rep Search --->
           <td align="center" style="vertical-align:middle;">
@@ -629,47 +591,19 @@ function SaveComment() {
             <br>
   
           </td>
-
-		<!--- WGG 8/9/2014 Member Search --->
-		<td align="center" style="vertical-align:middle;">
-			<cfoutput>
-			 <!--- WGG 8/9/2014 this is needed at the moment to line up fields --->
-				<input type="text" id="form_member_name" name="form_member_name" size="15" value="#form_member_name#">
-				<br>
-				Last Name
-				<button type="button" id="StatusSub" onclick="Clear_Mem_Name()">
-				Clear
-				</button>
-				<br>
-				<br>	
-								
-				<!--- WGG 8/9/2014 Member ID --->
-				<input type="text" id="form_mem_id" name="form_mem_id" size="15" value="#form_mem_id#"></cfoutput>
-				<br>
-				Member ID
-				<button type="button" id="StatusSub" onclick="Clear_Mem()">
-				Clear
-			</button>
-		</td>	
-			
+	
 		<tr class="list_even_odd">
 			<td align="center">
-            	Ignored
+				Ignored
 			</td>
 			
-			<!--- WGG 8/10/2014 testing date search --->
-			<cfif cid EQ 5 OR cid EQ 7>
+			<td align="center" width="195">
+				Issue Reason
+			</td>		
+				
 			<td align="center">
-				Date Found
-			</td>
-			</cfif>
-			
-			<!--- Internal/External Agent search --->
-			<cfif cid EQ 7>
-			<td align="center">
-				Internal/External
-			</td>
-			</cfif>
+				Member Search
+			</td>		
         </tr>
 
 		<tr class="list_even_odd">	
@@ -690,27 +624,106 @@ function SaveComment() {
 					Clear
 				</button>
 			</td>
+		
+					
+			<!--- WGG 6/25/2014 Issue Reason, 9/6/2014 changed position --->
+			<td align="center">
+				<cfselect query="q_sel_reason" 
+					id="form_ticket_reason"
+					value="k_tag_issue_reason" 
+					display="reason" 
+					name="form_ticket_reason" 
+					selected="#form_ticket_reason#" 
+					multiple="yes" 
+					size="3">
+				</cfselect><br><br>
+				
+				<button type="button" id="StatusSub" onclick="Clear_Reason()">
+				Clear
+				</button>
+			</td>
+
+			<!--- WGG 8/9/2014 Member Search, 9/6/2014 moved around --->
+			<td align="center" style="vertical-align:middle;">
+				<cfoutput>
+				 <!--- WGG 8/9/2014 this is needed at the moment to line up fields --->
+					<input type="text" id="form_member_name" name="form_member_name" size="15" value="#form_member_name#">
+					<br>
+					Last Name
+					<button type="button" id="StatusSub" onclick="Clear_Mem_Name()">
+					Clear
+					</button>
+					<br>
+					<br>	
+									
+					<!--- WGG 8/9/2014 Member ID --->
+					<input type="text" id="form_mem_id" name="form_mem_id" size="15" value="#form_mem_id#"></cfoutput>
+					<br>
+					Member ID
+					<button type="button" id="StatusSub" onclick="Clear_Mem()">
+					Clear
+				</button>
+			</td>	
+		</tr>
+
+		<tr class="list_even_odd">		
+			<td align="center">
+				Resolved
+			</td>
+
+			<!--- WGG 8/10/2014 testing date search --->
+			<cfif cid EQ 5 OR cid EQ 7>
+			<td align="center">
+				Date Found
+			</td>
+			</cfif>
+						
+			<!--- Internal/External Agent search --->
+			<cfif cid EQ 7>
+			<td align="center">
+				Internal/External
+			</td>
+			</cfif>
+		</tr>
+
+		<!--- WGG 9/6/2014 resolved drop down --->
+		<tr class="list_even_odd">		
+			<td align="center">
+			<cfselect query="q_sel_resolved" 
+				id="form_ticket_resolved"
+				value="is_resolved" 
+				display="resolved" 
+				name="form_ticket_resolved" 
+				selected="#form_ticket_resolved#" 
+				multiple="yes" 
+				size="3">
+			</cfselect><br><br>
+			
+			<button type="button" id="StatusSub" onclick="Clear_Resolved()">
+				Clear
+			</button>
+			</td>
+
 			
 		<!--- WGG 8/10/2014 testing date search --->
 		<cfif cid EQ 5 OR cid EQ 7>
-			<td align="left">
+			<td align="center">		
 				<span style="width:30px; display:block; float:left;">From</span><cfinput type="text" size="10" name="date_from" value="#dateFormat(date_from,date_mask)#"><br> 
 				<span style="width:30px; display:block; float:left;">To</span><cfinput type="text" size="10" name="date_to" value="#dateFormat(date_to,date_mask)#"> 
-				
-			<p align="center"><button type="button" id="Date_Clear" onclick="Clear_Date()">
-				Clear
-			</button>
+			<p align="center">
+				<button type="button" id="Date_Clear" onclick="Clear_Date()">
+					Clear
+				</button>
 			</p>
+			
 			<!--- WGG 8/10/2014 how you can see what is output from these drop downs
 			<cfoutput>#date_from# #date_to#</cfoutput>
 			--->
-			
 			</td>
-
-
 		</cfif>			
-			<!--- WGG 8/7/2014 Select internal vs external --->
-			<cfif cid EQ 7>			
+			
+		<!--- WGG 8/7/2014 Select internal vs external --->
+		<cfif cid EQ 7>			
 			<td align="center">
 				<cfselect query="q_sel_internal" 
 					id="form_internal"
@@ -723,29 +736,17 @@ function SaveComment() {
 					size="3">
 					<option value="2"<cfif isdefined('form.form_internal') AND form_internal EQ 2>selected</cfif>>Unknown</option>
 				</cfselect><br><br>
-					<!--- WGG 8/7/2014 should not be clear ignored --->
-					<button type="button" id="Internal" onclick="Clear_Internal()">
-						Clear
-					</button>
+				
+				<button type="button" id="Internal" onclick="Clear_Internal()">
+					Clear
+				</button>
 			</td>
-			</cfif>
-		</tr>
-
-		<tr class="list_even_odd">		
-			<td align="center">
-				Resolved
-			</td>
-		</tr>
-
-		<tr class="list_even_odd">		
-			<td align="center">
-				Resolved
-			</td>
+		</cfif>
 		</tr>
 		</table>
-    </div>
-  </div>
-  <br>
+	</div>
+</div>
+<br>
 <!---
 ################################################################
 ############## Data Issues Table ##########################
