@@ -515,17 +515,8 @@ function SaveComment() {
       <table id="cpy" class="list_table scrolling" scroll_height="700" width="100%">
 		<tr class="list_col_hdr">
 
-          <td align="center">
+          <td align="center" width="110">
             Status
-          </td>
-          <td align="center">
-            Ignored
-          </td>
-		
-
-		
-          <td align="center">
-            Resolved
           </td>
 
           <td align="center" width="225">
@@ -551,7 +542,8 @@ function SaveComment() {
           </td>
         </tr>
         <tr class="list_even_odd">
-          <td align="center">
+          	<!--- WGG 9/6/2014 Status dropdown --->
+			<td align="center">
             <cfselect query="q_sel_status" 
               id="form_ticket_status"
               value="issue_status_id" 
@@ -559,27 +551,13 @@ function SaveComment() {
               name="form_ticket_status" 
               selected="#form_ticket_status#" 
               multiple="yes" 
-              size="3">
+              size="2">
             </cfselect><br><br>
             <button type="button" id="StatusSub" onclick="Clear_Status()">
               Clear
             </button>
           </td>
-		
-          <td align="center">
-            <cfselect query="q_sel_ignored" 
-              id="form_ticket_ignore"
-              value="is_ignored" 
-              display="ignored" 
-              name="form_ticket_ignored" 
-              selected="#form_ticket_ignored#" 
-              multiple="yes" 
-              size="3">
-            </cfselect><br><br>
-            <button type="button" id="StatusSub" onclick="Clear_Ignored()">
-              Clear
-            </button>
-          </td>
+
 		
           <td align="center">
             <cfselect query="q_sel_resolved" 
@@ -675,6 +653,10 @@ function SaveComment() {
 		</td>	
 			
 		<tr class="list_even_odd">
+			<td align="center">
+            	Ignored
+			</td>
+			
 			<!--- WGG 8/10/2014 testing date search --->
 			<cfif cid EQ 5 OR cid EQ 7>
 			<td align="center">
@@ -690,7 +672,25 @@ function SaveComment() {
 			</cfif>
         </tr>
 
-		<tr class="list_even_odd">		
+		<tr class="list_even_odd">	
+			
+			<!--- WGG 9/6/2014 Ignored dropdown --->
+			<td align="center">
+				<cfselect query="q_sel_ignored" 
+					id="form_ticket_ignore"
+					value="is_ignored" 
+					display="ignored" 
+					name="form_ticket_ignored" 
+					selected="#form_ticket_ignored#" 
+					multiple="yes" 
+					size="3">
+				</cfselect><br><br>
+				
+				<button type="button" id="StatusSub" onclick="Clear_Ignored()">
+					Clear
+				</button>
+			</td>
+			
 		<!--- WGG 8/10/2014 testing date search --->
 		<cfif cid EQ 5 OR cid EQ 7>
 			<td align="left">
@@ -729,6 +729,18 @@ function SaveComment() {
 					</button>
 			</td>
 			</cfif>
+		</tr>
+
+		<tr class="list_even_odd">		
+			<td align="center">
+				Resolved
+			</td>
+		</tr>
+
+		<tr class="list_even_odd">		
+			<td align="center">
+				Resolved
+			</td>
 		</tr>
 		</table>
     </div>
