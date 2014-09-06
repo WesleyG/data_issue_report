@@ -1023,6 +1023,13 @@ function SaveComment() {
 		 	  z-index: 9997"
 		 	  src="../images/spinner.gif"/></center>
 	</div>
+
+<!--- WGG 9/6/2014 removing scrollable as too many results 
+caused a window scroll bar and a table scroll bar right next 
+to one another which was confusing for the client 
+--->
+
 <cfset ajaxonload("doScrollTables")>
+
 <cfset ajaxonload("makeSortable")>
 <!--- <cfset ajaxonload("makeSortable")> --->
