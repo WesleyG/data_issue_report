@@ -504,13 +504,17 @@ function SaveComment() {
 
 <!--- WGG 6/1/2014 Display issues on page --->
 <cfform method="POST" action="data_issue_report.htm" name="test">
-  <div id="searchBox" style="border-style:solid; border-width: 1px; border-radius:15px; width:95%; margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
-    <div align="center">
-      <span>
-        <b>
-          Data Issue Search
-        </b>
-      </span>
+<div id="searchBox" style="border-style:solid; border-width: 1px; border-radius:15px; width:95%; margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
+<div align="center">
+	<span>
+		<!--- WGG 9/6/2014 Title --->
+		<b>Data Issue Search</b>
+		<br>
+		<input class="form_submit_button" type="submit" value="Search" name="Submit">
+		
+		<button type="button" id="RefreshButton" onclick="Click_Refresh()">Find New Issues</button></button>
+		<br><br>
+	</span>
 	
       <table id="cpy" class="list_table scrolling" scroll_height="700" width="100%">
 		<tr class="list_col_hdr">
@@ -527,11 +531,6 @@ function SaveComment() {
 			Rep Search
           </td>
 
-          <td rowspan="2" width="125" align="center">
-            <input class="form_submit_button" type="submit" value="Search" name="Submit">
-			<br><br>
-			<button type="button" id="RefreshButton" onclick="Click_Refresh()">Find New Issues</button></button>
-          </td>
         </tr>
         <tr class="list_even_odd">
 			<!--- WGG 9/6/2014 Status dropdown --->
