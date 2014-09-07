@@ -760,37 +760,36 @@ function SaveComment() {
       </span>
 	</div>
 	<div align="left">
-        <!--- ############################################
-		################## Data Issue Headers New ############
-		################################################## --->
-      <table id="cpy" class="list_table scrolling" scroll_height="1500" style="width:98%;">
-          <tr class="list_col_hdr">
-            <td align="center" width="115">
-              Status
-            </td>
-
-            <td align="center" width="105">
-              Ignored
-            </td>
+		
+	<!--- ############################################
+	################## Data Issue Headers New ############
+	################################################## --->
+	<table id="cpy" class="list_table scrolling" scroll_height="1500" style="width:98%;">
+		<tr class="list_col_hdr">
+			<td align="center">
+			Status
+			</td>
+			
+			<td align="center">
+			Ignored
+			</td>
 			
 			<td align="center" width="105">
 				Member ID
-            </td>
-
-            <td align="center">
-              Issue ID
-            </td>
-			
-            <td align="center">
-              Resolved
+				<br>Member Name
+				<br>---<br>
+				Issue ID
             </td>
 
 			<td align="center">
 				Issue Type
-				<br>
+				<br>---<br>
 				Reason
+				<br>---<br>
+				Resolved
             </td>
 
+<!---
             <td align="center" width="85">
               Date Found
             </td>
@@ -799,49 +798,39 @@ function SaveComment() {
             <td align="center">
               Date Resolved
             </td>
+--->
 			<!--- WGG
             <!--- WGG 5 --->
             <td align="center">
               Date Ignored
             </td>
 			--->
-            <!--- WGG 6 --->
-            <td align="center">
-              Rep ID
-              <br>
-              Rep Name
-            </td>
-            <!--- WGG 7 --->
-            <td align="center">
-              Contract ID
-              <br>
-              Contract Name
-			  <br>
-			  Line of Business
-            </td>
+			
 
-			<!--- WGG 7/25/2014 testid for client demos, cid 3, was showing an extra column possibly because DB is shared with molina cid 7 --->
-			<cfif (cid EQ 7 OR cid EQ 3)>
-            <td align="center">
-				Team
+			<!--- WGG 9/7/2014 Rep Info --->
+				<td align="center">
+				Rep ID
 				<br>
-				Period
-            </td>
-			</cfif>
+				Rep Name
+				<br>
+				Contract ID
+				<br>
+				Contract Name
+				<br>
+				Line of Business
+			</td>
 		
+			<!--- WGG 9/7/2014 comments and history --->
             <td align="center" width="85">
 				Add Comment
-            </td>
-
-            <td align="center">
+				<br>---<br>
 				Latest Comment
-            </td>
-					
-			<td align="center">
+				<br>---<br>
 				Last Updated By
-				<br>
+				<br>---<br>
 				Date
             </td>
+
           </tr>
 		</table>
 		
@@ -867,22 +856,25 @@ function SaveComment() {
           <cfset toggle = toggle*-1>
 		
 
-          <tr class="list_even_odd">
-            <td align="center" width="115">
-              <!--- WGG 0 --->
-              <select name="status_box" id="status_box" onChange="SaveStatus(this.value,#pk_TAG_data_issues#)">
-              <option value="0" 
-              <cfif k_tag_issue_status_id eq '0'>
-                Selected="selected"
-              </cfif>
-              >Not Reviewed</option> <option value="1" 
-              <cfif k_tag_issue_status_id eq '1'>
-                Selected="selected"
-              </cfif>
-              >Reviewed</option> 
-            </td>
-            <td align="center" width="105">
-              <!--- WGG 3 --->
+		<tr class="list_even_odd">
+		
+		<!--- WGG 9/7/2014 Reviewed Dropdown --->
+			<td align="center">
+	
+				<select name="status_box" id="status_box" onChange="SaveStatus(this.value,#pk_TAG_data_issues#)">
+				<option value="0" 
+				<cfif k_tag_issue_status_id eq '0'>
+				Selected="selected"
+				</cfif>
+				>Not Reviewed</option> <option value="1" 
+				<cfif k_tag_issue_status_id eq '1'>
+				Selected="selected"
+				</cfif>
+				>Reviewed</option> 
+			</td>
+
+		<!--- WGG 9/7/2014 Ignored Dropdown --->
+			<td align="center">
               <select name="is_ignored_box" id="is_ignored_box" onChange="IgnoreStatus(this.value,#pk_TAG_data_issues#)">
               <option value="0" 
               <cfif is_ignored eq '0'>
@@ -904,21 +896,19 @@ function SaveComment() {
 				<!--- WGG 8/9/2014 Add member name --->
 				<br>
 				#first_name# #last_name#
-			</td>
-
-            <td align="center">
-              #pk_TAG_data_issues#
+				<br>---<br>
+				#pk_TAG_data_issues#
             </td>
 						
-            <td align="center">
-              #is_resolved_word#
-            </td>
 			<td align="center">
 				#issue_type_name#
-				<br>
+				<br>---<br>
 				#issue_reason_name#
+				<br>---<br>
+				#is_resolved_word#
             </td>
-            <!--- Date Found --->
+			
+            <!--- Date Found 
             <td align="center" width="85">
               #dateformat(date_opened,"medium")#
             </td>
@@ -926,35 +916,35 @@ function SaveComment() {
             <td align="center">
               #date_resolved#
             </td>
+			--->
 			<!--- WGG hiding ignored dates
             <td align="center">
               #date_ignored#
             </td>
 			--->
 
-            <!--- RepID and Name --->
-            <td align="center">
-              <a href="../call_center_sales/list_brokers.htm?brkid=#k_brk_broker#">
-                #broker_id#
-              </a>
-              <br>
-              #broker_name#
-            </td>
-
-			<!--- Contract ID, Con Name & LOB --->
+			<!--- RepID, Name Contract ID, Con Name & LOB  --->
+			<cfif (cid EQ 7 OR cid EQ 3) AND k_tag_issue_type NEQ 5>
 			<td align="center">
+				<a href="../call_center_sales/list_brokers.htm?brkid=#k_brk_broker#">
+				#broker_id#
+				</a>
+				<br>
+				#broker_name#
+
 				<cfif #k_brk_entity_contract# NEQ 0>
-					#k_brk_entity_contract#
+				#k_brk_entity_contract#
 				</cfif>
-              
-            	<br>
+				
+				<br>
 				#name#
 				<br>
 				#lob_name#
 			</td>
+			</cfif>
 
 			<!--- WGG 7/25/2014 testid for client demos, cid 3, was showing an extra column possibly because DB is shared with molina cid 7 --->
-			<cfif (cid EQ 7 OR cid EQ 3)>
+			<cfif (cid EQ 7 OR cid EQ 3) AND k_tag_issue_type EQ 5>
             <!--- Member ID --->
             <td align="center">
 				#team_name#
@@ -970,23 +960,19 @@ function SaveComment() {
 				</cfif>
             </td>
 			</cfif>
-			
+		
 			<!--- WGG 7/8/2014 Comment --->
 			<td align="center" width="85">
+				#tag_comment#
+				<br>---<br>
+				#tag_comment_time#<br>
+				#comment_user#
+				<br>
+				<!--- WGG 9/7/2014 add comment --->
 				<input class="form_submit_button" type="button" value="Add" name="NewComment" onClick="OpenComment(#pk_TAG_data_issues#)">
-			</td>
-			
-
-			<!--- WGG Last Comment--->
-			<td align="center">
-				#tag_comment#<br>
+				<br>
 				<!--- WGG 7/30/2014 adding comment history --->
 				<input class="form_submit_button" type="button" value="History" name="NewComment" onClick="CommentHistory(#pk_TAG_data_issues#)">
-			</td>
-			
-			<td align="center">
-				#tag_comment_time#<br>
-				#comment_user#<br>
 			</td>
           </tr>
         </cfoutput>
@@ -1029,7 +1015,9 @@ caused a window scroll bar and a table scroll bar right next
 to one another which was confusing for the client 
 --->
 
+
 <cfset ajaxonload("doScrollTables")>
+
 
 <cfset ajaxonload("makeSortable")>
 <!--- <cfset ajaxonload("makeSortable")> --->
