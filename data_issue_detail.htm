@@ -1,0 +1,82 @@
+<cfinclude template = "../cf_includes/cf_PRE_template_include.htm">
+<cfparam name = "display_mode" default = "">
+<!--- set form and list files --->
+<cfset form_name="data_issue_report.htm">
+<cfset list_file="data_issue_report.htm">
+<!--- page title --->
+<cfset page_title="Data Issue Detail">
+<!--- page header --->
+<cfinclude template = "../templates/header.htm">
+
+<!--- WGG 9/9/2014 this page created today to fix issues molina is having with the comment
+	history display of data issues in IE8. Ticket https://molina.evolvespm.com/ticket/list_ticket.htm?id=843 --->
+
+
+<!--- WGG 5/27/2014 this is if you are passing in variables
+  everything which is being chosen on the report like
+  dates or broker id --->
+<cfset default_query_name = "">
+<cfset default_variables = "
+	member_id
+	k_data_source
+	form_ticket_status
+	form_ticket_ignored
+	form_broker_name
+	form_broker_id
+	form_member_name
+	form_mem_id
+	form_rep_id
+	form_ticket_resolved
+	form_ticket_type
+	form_ticket_reason
+	team_period_start
+	team_name
+	form_comment
+	pk_TAG_data_issues
+	k_TAG_data_issues
+	form_internal
+	date_from
+	date_to
+  ">
+<!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
+<cfinclude template="../cf_includes/set_defaults.htm">
+
+<!--- WGG 9/9/2014 get pk_tag_data_issues from URL --->
+<cfif isdefined('url.id')>
+	<cfset id = url.id>
+</cfif>
+
+<!--- WGG 9/9/2014 get comment history --->
+<cfquery name="comment_history" datasource="#application.sys_ds#">
+	SELECT *
+	FROM tag_issue_comment tic
+	WHERE tic.k_TAG_data_issues = #url.id#
+	ORDER BY tic.time_stamp DESC
+</cfquery>
+<div>
+	<cfoutput>
+		<b>Data Issue Comment History</b>
+
+		<table id="comment_hist_tbl" class="list_table scrolling" scroll_height="1500" width="400">
+			<!--- WGG 9/9/2014 header --->
+				<tr class="list_col_hdr">
+					<td><b>User</b></td>
+					<td><b>Comment</b></td>
+					<td><b>Time</b></td>
+				</tr>	
+			
+			<cfloop query="comment_history">
+				<tr class="list_col_hdr">
+					<td>#k_USR_operator_name#</td>
+					<td>#comment#</td>
+					<td>#time_stamp#</td>
+				</tr>				
+			</cfloop>
+	
+	</cfoutput>
+</div>
+<cfset ajaxonload("doScrollTables")>
+
+
+<cfset ajaxonload("makeSortable")>
+<!--- <cfset ajaxonload("makeSortable")> --->

@@ -95,14 +95,7 @@
 			</div>
 		</div>
 		
-<!--- WGG 7/30/2014 adding comment history --->
-		<div id="CommentHistoryDiv" style="float:left; display:none; position:absolute; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:200%; padding:20px;background-color: rgba(0, 0, 0, .7);">
-			<div id="CommentWindow2" style="height: 500px; overflow: auto; position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:10px 10px 10px 20px; width:800px; left:25%; top:35% bottom:15%;">
-				
-				<span style="height:100px;"id="comment_text"></span>
 
-			</div>
-		</div>
 
 <!--- WGG 6/6/2014 AJAX!! --->
 <script>
@@ -510,8 +503,7 @@ function SaveComment() {
 		<!--- WGG 9/6/2014 Title --->
 		<b>Data Issue Search</b>
 		<br>
-		<input class="form_submit_button" type="submit" value="Search" name="Submit">
-		
+		<input class="form_submit_button" type="submit" value="Search" name="Submit">&nbsp;&nbsp;
 		<button type="button" id="RefreshButton" onclick="Click_Refresh()">Find New Issues</button></button>
 		<br><br>
 	</span>
@@ -972,7 +964,7 @@ function SaveComment() {
 				<input class="form_submit_button" type="button" value="Add" name="NewComment" onClick="OpenComment(#pk_TAG_data_issues#)">
 				<br>
 				<!--- WGG 7/30/2014 adding comment history --->
-				<input class="form_submit_button" type="button" value="History" name="NewComment" onClick="CommentHistory(#pk_TAG_data_issues#)">
+				<input class="form_submit_button" type="button" value="History" name="NewComment" onClick="popwin('../data_issues/data_issue_detail.htm?id=#pk_TAG_data_issues#')">
 			</td>
           </tr>
         </cfoutput>
