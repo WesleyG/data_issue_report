@@ -1,1023 +1,135 @@
 <cfinclude template = "../cf_includes/cf_PRE_template_include.htm">
 <cfparam name = "display_mode" default = "">
+
 <!--- set form and list files --->
-<cfset form_name="data_issue_report.htm">
-<cfset list_file="data_issue_report.htm">
+<cfset form_name="list_ticket_report.htm">
+<cfset list_file="list_ticket_report.htm">
+
 <!--- page title --->
-<cfset page_title="Data Issue Report">
+<cfset page_title="KPI Dashboard">
+<cfsavecontent variable="page_description">
+
+</cfsavecontent>
+
 <!--- page header --->
 <cfinclude template = "../templates/header.htm">
 
-<!---
-<cfinclude template = "data_issue_queries.htm">
---->
 
-<!--- WGG 5/27/2014 this is if you are passing in variables
-  everything which is being chosen on the report like
-  dates or broker id --->
+<!--- set defaults for brk_sales_activity_log --->
 <cfset default_query_name = "">
 <cfset default_variables = "
-	member_id
-	k_data_source
-	form_ticket_status
-	form_ticket_ignored
-	form_broker_name
-	form_broker_id
-	form_member_name
-	form_mem_id
-	form_rep_id
-	form_ticket_resolved
-	form_ticket_type
-	form_ticket_reason
-	team_period_start
-	team_name
-	form_comment
-	pk_TAG_data_issues
-	k_TAG_data_issues
-	form_internal
-	date_from
-	date_to
-  ">
-<!--- WGG 5/27/2014 the below line makes the cfset default_variables work --->
+hours_worked
+k_data_source
+pk_ticket
+">
 <cfinclude template="../cf_includes/set_defaults.htm">
+<!--- END set defaults for brk_sales_activity_log --->
 
-<!--- WGG 6/12/2014 show only not-ignored rows on page load --->
-<cfif not isdefined('form.form_ticket_ignored')>
-  <cfset form.form_ticket_ignored = 0>
+<cfif k_data_source EQ ''>
+	<cfset k_data_source = 3>
 </cfif>
 
+<!--- WGG 8/31/2014 creates white backbround instead of grey border halfway up page --->
+<style>
+.wufoo_container {
+	height:2000px;
+}
+</style>
 
-<cfif isdefined('pkid')>
-	
-	<cfquery name="sel_mem_id" datasource="#application.sys_ds#">
-		SELECT member_id
-		FROM mem_member_master
-		where pk_mem_member_master = <cfqueryparam value="#pkid#" cfsqltype="cf_sql_integer">
+<cfquery name="sel_login" datasource="#application.sys_ds#">
+	SELECT login_id
+	FROM USR_operator
+	where pk_USR_operator = #session.login.K_USR_operator#
+</cfquery>
+
+
+
+
+
+<!--- WGG 9/3/2014 shows you what the user's login id is
+
+<cfloop query = "sel_login"> 
+	<cfoutput>#login_id#</cfoutput>
+</cfloop>
+--->
+	<div style="float:left">
+
+	<cfquery name="active_enrollments" datasource="#application.sys_ds#" result="enrollment_count">
+		SELECT COUNT
+			(DISTINCT mem.member_id) as cnt
+		FROM mem_membership_window win
+			INNER JOIN mem_member_master mem
+				on mem.pk_mem_member_master = win.k_mem_member_master
+		WHERE win.cid = 7
+			AND win.start_date < (DATEADD(M, 1, GETDATE()))
+			AND ISNULL(win.end_date, '01-01-2999') > (DATEADD(M, 0, GETDATE()))
+			AND ISNULL(win.start_date, '01-01-1900') <> ISNULL(win.end_date, '01-01-2999')
 	</cfquery>
 
-
-<cfset form_mem_id = #sel_mem_id.member_id#>
-<cfset form.form_mem_id = #sel_mem_id.member_id#>
-
-</cfif>
-
-<!--- WGG 7/31/2014 I decided that users would want to see reviewed issues that
-	are both not ignored and not resolved because they have reviewed it but
-	it is still an issue.
-<!--- WGG 7/31/2014 show only not-reviewed rows on page load --->
-<cfif not isdefined('form.form_ticket_status')>
-  <cfset form.form_ticket_status = 0>
-</cfif>
---->
-
-<!--- WGG 7/31/2014 show only resolved rows on page load --->
-<cfif not isdefined('form.form_ticket_resolved')>
-  <cfset form.form_ticket_resolved = 0>
-</cfif>
-
-
-
-<!--- WGG 7/9/2014 adding comment --->
-		<div id="CommentDiv" style="float:left; display:none; position:absolute; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:200%; padding:20px;background-color: rgba(0, 0, 0, .7);">
-			<div id="CommentWindow" style="position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:10px 10px 10px 20px; width:800px; left:25%; top:35%">
-				
-				Add Comment
-				<br>
-				<!---
-				<cfoutput><input type="hidden" value="#id#" id="k_ticket" name="k_ticket"></cfoutput>
-				--->
-				<cfoutput><input type="hidden" value="#pk_TAG_data_issues#" id="k_comment" name="k_comment"></cfoutput>
-				<textarea rows="5" cols="95" id="comment" name="comment" wrap="hard"></textarea>
-				<br>
-				
-				<button id="SaveComment" onclick="SaveComment()">Save</button>	
-				<button id="HideComment" onclick="HideComment()">Close</button>	
-			</div>
-		</div>
-		
-<!--- WGG 7/30/2014 adding comment history --->
-		<div id="CommentHistoryDiv" style="float:left; display:none; position:absolute; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:200%; padding:20px;background-color: rgba(0, 0, 0, .7);">
-			<div id="CommentWindow2" style="height: 500px; overflow: auto; position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:10px 10px 10px 20px; width:800px; left:25%; top:35% bottom:15%;">
-				
-				<span style="height:100px;"id="comment_text"></span>
-
-			</div>
-		</div>
-
-<!--- WGG 6/6/2014 AJAX!! --->
-<script>
-  
-function Clear_Status() {
-  $("#form_ticket_status").val(-1);
-}
-
-function Clear_Ignored() {
-  $("#form_ticket_ignore").val(-1);
-}
-
-function Clear_Resolved() {
-  $("#form_ticket_resolved").val(-1);
-}
-
-function Clear_Type() {
-  $("#form_ticket_type").val(-1);
-}
-
-function Clear_Reason() {
-  $("#form_ticket_reason").val(-1);
-}
-
-function Clear_Name() {
-  $("#form_broker_name").val("");
-}   
-
-function Clear_Mem() {
-  $("#form_mem_id").val("");
-}  
-
-function Clear_Mem_Name() {
-  $("#form_member_name").val("");
-}   
-
-function Clear_RepID() {
-  $("#form_rep_id").val("");
-}  
- 
-<!--- WGG 8/7/2014 adding clear internal button --->
-function Clear_Internal() {
-  $("#form_internal").val("");
-}
-
-<!--- WGG 8/7/2014 adding clear internal button --->
-function Clear_Date() {
-	$("#date_from").val("");
-	$("#date_to").val("");
-}
-
- <!-- WGG 6/30/2014 need Bryan to look at this --->
- function Click_Refresh() {
-  
-	document.getElementById("darkOverlay").style.visibility = "visible";
-	document.getElementById("spinner").style.visibility = "visible";
-   
-		$.ajax({
-            type: "POST",
-            url: "data_issue_queries.htm",
-            success: function(){
-          		//alert('hi2'); 
-          		location.reload(); 
-          		$("#LoadDiv").show;
-        	}
-        }) .done(function() {
-				document.getElementById("darkOverlay").style.visibility = "hidden";
-				document.getElementById("spinner").style.visibility = "hidden"; 
-			});
-	     
-}  
-  
-function SaveStatus(x,y) {
-  //alert(x+' '+y);
-     $.ajax({
-            type: "POST",
-            url: "data_issue_status.htm",
-            data: { id:y , sID: x},
-            success: function(){
-          //alert('hi'); 
-        }
-        })
-}
-
-function IgnoreStatus(x,y) {
-  //alert(x+' '+y);
-     $.ajax({
-            type: "POST",
-            url: "data_issue_ignore.htm",
-            data: { id:y , sID: x},
-            success: function(){
-          //alert('hi'); 
-        }
-        })
-}
-
-function comment(x,y) {
-  alert("hi");
-}
-
-function OpenComment(x) {
-	//alert('test');
-	$("#CommentDiv").show();
-	$("#comment").focus();
-	$("#k_comment").val(x);
-}
-
-<!--- WGG 7/30/2014 adding comment history --->
-function CommentHistory(x) {
-	//alert('test');
-	$("#CommentHistoryDiv").show();
-	$("#comment").focus();
-	//$("#k_comment").val(x);
-
-  	$.ajax({
-           type: "POST",
-           url: "data_issue_comment_show.htm",
-           data: { commentID: x},
-          	success: function(data){
-   				$('#comment_text').html(data);
-  			}
-  			
-        })
-}
-
-function HideComment() {
-	 document.getElementById("darkOverlay").style.visibility = "hidden";
-	document.getElementById("spinner").style.visibility = "hidden";
-	$("#CommentDiv").hide();
-}
-
-function HideCommentHistory() {
-	 document.getElementById("darkOverlay").style.visibility = "hidden";
-	document.getElementById("spinner").style.visibility = "hidden";
-	$("#CommentHistoryDiv").hide();
-}
-function SaveComment() {
-	document.getElementById("darkOverlay").style.visibility = "visible";
-	document.getElementById("spinner").style.visibility = "visible";
-	var id = $("#k_comment").val();
-	var commentID = $("#comment").val();
-  	$.ajax({
-           type: "POST",
-           url: "data_issue_comment.cfm",
-           data: { id: id, commentID: commentID},
-           success: function(){
-   				location.reload(); 
-  			}
-        })
-   
-}
-</script> 
-
-
-
-<!--- WGG 6/1/2014 Query to populate page --->
-<cfquery name="q_data_issues" datasource="#application.sys_ds#">
-	SELECT issue.pk_TAG_data_issues
-		,issue.k_TAG_issue_status
-		,s.issue_status_name
-		,issue.cid
-		,issue.k_tag_issue_type
-		,itype.issue_type_name
-		,issue.k_tag_issue_reason
-		,ireason.issue_reason_name
-		,issue.is_ignored
-		,CASE issue.is_ignored
-			WHEN 0 THEN 'Not Ignored'
-			WHEN 1 THEN 'Ignored'
-			END
-			AS is_ignored_word
-		,issue.date_opened
-		,issue.date_closed
-		,issue.date_ignored
-		,issue.is_resolved
-		,CASE issue.is_resolved
-			WHEN 0 THEN 'Not Resolved'
-			WHEN 1 THEN 'Resolved'
-			END
-			AS is_resolved_word
-		,issue.date_resolved
-		,issue.k_brk_broker
-		,issue.k_mem_member_master
-		,m.member_id
-		,m.first_name
-		,m.last_name
-		,m.pk_mem_member_master
-		,issue.k_mem_membership_window
-		,issue.k_brk_entity_contract
-		,b.broker_id
-		,b.name AS broker_name
-		,c.name
-		,issue.k_tag_issue_status_id
-		,o.name as lob_name
-		,u.name as user_name
-		,issue.time_stamp
-		,team_period_start
-		,tm.name as team_name
-		<cfif cid EQ 7>
-			,bt.internal_external
-			,CASE bt.internal_external
-				WHEN 0 THEN 'Broker'
-				WHEN 1 THEN 'Captive'
-				ELSE 'Unknown'
-				END
-				AS internal_external_text
-		</cfif>
-		,(SELECT TOP 1 time_stamp FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment_time
-		,(SELECT TOP 1 left(comment, 50) FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as tag_comment
-		,(SELECT TOP 1 k_USR_operator_name FROM tag_issue_comment WHERE k_TAG_data_issues = pk_TAG_data_issues ORDER BY time_stamp desc) as comment_user
-
-	FROM dbo.TAG_data_issues issue
-		LEFT JOIN TAG_issue_type itype
-			ON issue.k_TAG_issue_type = itype.pk_TAG_issue_type
-		LEFT JOIN TAG_issue_reason ireason
-			ON issue.k_TAG_issue_reason = ireason.pk_TAG_issue_reason
-		LEFT JOIN mem_member_master m
-			ON issue.k_mem_member_master = m.pk_mem_member_master
-		LEFT JOIN brk_broker b
-			ON issue.k_brk_broker = b.pk_brk_broker
-		LEFT JOIN brk_entity_contract c
-			ON issue.k_brk_entity_contract = c.pk_brk_entity_contract
-		LEFT JOIN tag_issue_status s
-			ON issue.k_tag_issue_status = s.pk_tag_issue_status
-		LEFT JOIN mem_membership_window w
-			ON w.pk_mem_membership_window = issue.k_mem_membership_window
-		LEFT JOIN org_lob o
-			ON w.k_org_lob = o.pk_org_lob
-		LEFT JOIN usr_operator u
-			ON u.pk_usr_operator = issue.k_usr_operator
-		LEFT JOIN tea_team tm
-			ON tm.pk_tea_team = issue.k_tea_team
-		<cfif cid EQ 7>
-		LEFT JOIN BRK_broker_type bt
-			ON bt.pk_BRK_broker_type = w.k_BRK_broker_type__enrolled
-		</cfif>
-	WHERE 1=1
-		AND issue.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-		
-		<cfif isdefined('form.form_ticket_status')>
-			AND k_tag_issue_status_id IN (<cfqueryparam value="#form.form_ticket_status#" cfsqltype="cf_sql_integer" list="true"/>)
-		</cfif> 
-
-		<cfif isdefined('form.form_ticket_ignored') AND len('form.form_ticket_ignored')>
-			AND is_ignored IN (<cfqueryparam value="#form.form_ticket_ignored#" cfsqltype="cf_sql_integer" list="true"/>)
-		</cfif> 
+	<cfquery name="enrollments_this_month" datasource="#application.sys_ds#" result="enrollment_count">
+		SELECT
+			COUNT
+				(DISTINCT mem.member_id) as cnt
+		FROM mem_membership_window win
+			INNER JOIN mem_member_master mem
+				ON mem.pk_mem_member_master = win.k_mem_member_master
+		WHERE win.cid = 7
+		AND month(win.start_date) = month(GETDATE())
+		AND year (win.start_date) = year(GETDATE())
+		AND ISNULL(win.end_date, '01-01-2999') <> win.start_date
+	</cfquery>
 	
-		<cfif isdefined('form.form_ticket_resolved') AND len('form.form_ticket_resolved')>
-			AND is_resolved IN (<cfqueryparam value="#form.form_ticket_resolved#" cfsqltype="cf_sql_integer" list="true"/>)
-		</cfif> 	
-
-		<cfif isdefined('form.form_ticket_type') AND len('form.form_ticket_type')>
-			AND k_tag_issue_type IN (<cfqueryparam value="#form.form_ticket_type#" cfsqltype="cf_sql_integer" list="true"/>)
-		</cfif>
-
-		<cfif isdefined('form.form_ticket_reason') AND len('form.form_ticket_reason')>
-			AND k_tag_issue_reason IN (<cfqueryparam value="#form.form_ticket_reason#" cfsqltype="cf_sql_integer" list="true"/>)
-		</cfif> 
-
-		<cfif isdefined('form.form_broker_name') AND len(form.form_broker_name)>
-			AND b.name LIKE (<cfqueryparam value="%#form.form_broker_name#%" cfsqltype="cf_sql_varchar"/>)
-		</cfif>
-
-		<cfif isdefined('form.form_mem_id') AND len(form.form_mem_id)>
-			AND m.member_id LIKE (<cfqueryparam value="%#form.form_mem_id#%" cfsqltype="cf_sql_varchar"/>)
-		</cfif>
-
-		<!--- WGG 8/8/2014 RepID search --->
-		<cfif isdefined('form.form_rep_id') AND len(form.form_rep_id)>
-			AND b.broker_id = (<cfqueryparam value="#form.form_rep_id#" cfsqltype="cf_sql_varchar"/>)
-		</cfif>
-
-		<!--- WGG 8/9/2014 Member Name search --->
-		<cfif isdefined('form.form_member_name') AND len(form.form_member_name)>
-			AND m.last_name LIKE (<cfqueryparam value="%#form.form_member_name#%" cfsqltype="cf_sql_varchar"/>)
-		</cfif>
-		
-
-		<cfif isdefined('form.form_internal') AND len(form.form_internal)>
-			AND (
-				bt.internal_external IN (<cfqueryparam value="#form.form_internal#" cfsqltype="cf_sql_integer" list="true"/>)
-				<cfif isdefined('form.form_internal') AND form.form_internal EQ 2>
-					OR bt.internal_external IS NULL
-				</cfif>
-			)
-		</cfif>
-
-		<!--- WGG 8/10/2014 test of date search --->
-		<cfif cid EQ 5 or CID EQ 7>		
-				<cfif isdefined('form.date_from') AND len(form.date_from)>
-					AND issue.date_opened >= <cfqueryparam value="#date_from#" cfsqltype="cf_sql_date"/>
-				</cfif>		
-		
-				<cfif isdefined('form.date_to') AND len(form.date_to)>
-					<!--- WGG 8/12/2014 the minus one is required for same date search --->
-					AND (issue.date_opened - 1 ) <= <cfqueryparam value="#date_to#" cfsqltype="cf_sql_date"/>
-				</cfif>			
-		</cfif>
-	ORDER BY issue.is_ignored, issue.k_TAG_issue_status, issue.k_tag_issue_type, issue.k_tag_issue_reason, issue.k_brk_broker
-</cfquery>
-
-<cfquery name="q_sel_status" datasource="#application.sys_ds#">
-  SELECT *
-  FROM tag_issue_status
-</cfquery>
-<cfquery name="q_sel_ignored" datasource="#application.sys_ds#">
-  SELECT 
-    ignored =  --ignored is the alias
-      CASE is_ignored
-        WHEN 1  THEN 'Ignored'
-        WHEN 0 THEN 'Not Ignored'
-        ELSE 'Unknown'
-
-        END
-    ,is_ignored
-  FROM tag_data_issues
-  GROUP BY is_ignored
-</cfquery>
-
-<cfquery name="q_sel_resolved" datasource="#application.sys_ds#">
-  SELECT 
-    resolved =  --resolved is the alias
-      CASE is_resolved
-        WHEN 1  THEN 'Resolved'
-        WHEN 0 THEN 'Not Resolved'
-        ELSE 'Unknown'
-
-        END
-    ,is_resolved
-  FROM tag_data_issues
-  GROUP BY is_resolved
-</cfquery>
-
-<cfquery name="q_sel_type" datasource="#application.sys_ds#">
-  SELECT 
-    type =  --type is the alias
-      CASE k_tag_issue_type
-        WHEN 1  THEN 'No Line Item'
-        WHEN 2  THEN 'Broker has no Agency'
-		WHEN 3  THEN 'App rec outside Agency dates'	
-		WHEN 4  THEN 'App rec outside team'	
-		WHEN 5  THEN 'No Goal'	
-		WHEN 6  THEN 'App date after start'							
-        ELSE 'Unknown'
-
-        END
-    ,k_tag_issue_type
-  FROM tag_data_issues
-  GROUP BY k_tag_issue_type
-</cfquery>
-
-
-<cfquery name="q_sel_reason" datasource="#application.sys_ds#">
-	SELECT 
-	reason =  --reason is the alias
-		CASE k_tag_issue_reason
-	        WHEN 1  THEN 'Unknown'
-    	    WHEN 2 THEN 'No Rep Contract'
-			WHEN 3 THEN 'App Rec Outside Contract'
-			WHEN 4 THEN 'No Universal Contract'
-			WHEN 5 THEN 'No Agency'
-			WHEN 6 THEN 'App Rec Outside Agency'
-	        WHEN 7  THEN 'No Group Match'
-    	    WHEN 8  THEN 'App Rec Outside Universal'
-			WHEN 9  THEN 'App Rec Outside Team'
-			WHEN 10  THEN 'App Rec Outside Regional Team'
-			WHEN 11  THEN 'No Team Goal'
-			WHEN 12  THEN 'App date after start'
-        	ELSE 'Unknown'
-		END
-	,k_tag_issue_reason
-	FROM tag_data_issues
-	GROUP BY k_tag_issue_reason
-</cfquery>
-
-<cfif cid EQ 7>
-<cfquery name="q_sel_internal" datasource="#application.sys_ds#">
-	SELECT 
-		internal =  --ignored is the alias
-		CASE bt.internal_external
-			WHEN 0  THEN 'Broker'
-			WHEN 1 THEN 'Captive'
-			ELSE 'Unknown'
-		END
-		,CAST(bt.internal_external as INT) as int_ext_val
-	FROM BRK_broker_type bt
-	GROUP BY bt.internal_external
-</cfquery>
-</cfif>
-
-	<!--- ############################################################################
-	################################# Data Issue Search ##############################
-	##################################################################################--->
-
-<div id="LoadDiv" style="float:left; position:absolute; display:none; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:100%; padding:20px;background-color: rgba(0, 0, 0, .5);">
-	<img style="margin: 75px auto 0 100px;" src="../images/loading.gif" border="0">Loading
-</div>
-
-
-<!--- WGG 6/1/2014 Display issues on page --->
-<cfform method="POST" action="data_issue_report.htm" name="test">
-<div id="searchBox" style="border-style:solid; border-width: 1px; border-radius:15px; width:95%; margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
-<div align="center">
-	<span>
-		<!--- WGG 9/6/2014 Title --->
-		<b>Data Issue Search</b>
-		<br>
-		<input class="form_submit_button" type="submit" value="Search" name="Submit">
-		
-		<button type="button" id="RefreshButton" onclick="Click_Refresh()">Find New Issues</button></button>
-		<br><br>
-	</span>
+	<cfquery name="disenrollments_this_month" datasource="#application.sys_ds#" result="enrollment_count">
+		SELECT
+			COUNT
+				(DISTINCT mem.member_id) as cnt
+		FROM mem_membership_window win
+			INNER JOIN mem_member_master mem
+				ON mem.pk_mem_member_master = win.k_mem_member_master
+		WHERE win.cid = 7
+		AND month(win.end_date) = month(GETDATE())
+		AND year (win.end_date) = year(GETDATE())
+		AND ISNULL(win.end_date, '01-01-2999') <> win.start_date
+	</cfquery>
 	
-      <table id="cpy" class="list_table scrolling" scroll_height="700" width="100%">
-		<tr class="list_col_hdr">
-
-          <td align="center">
-            Status
-          </td>
-
-          <td align="center">
-            Issue Type
-          </td>
-		
-		  <td align="center">
-			Rep Search
-          </td>
-
-        </tr>
-        <tr class="list_even_odd">
-			<!--- WGG 9/6/2014 Status dropdown --->
-			<td align="center">
-				<cfselect query="q_sel_status" 
-					id="form_ticket_status"
-					value="issue_status_id" 
-					display="issue_status_name" 
-					name="form_ticket_status" 
-					selected="#form_ticket_status#" 
-					multiple="yes" 
-					size="2">
-				</cfselect><br><br>
-				
-				<button type="button" id="StatusSub" onclick="Clear_Status()">
-					Clear
-				</button>
-			</td>
-
-			<!--- WGG 6/25/2014 Issue Type --->
-			<td align="center">
-				<cfselect query="q_sel_type" 
-					id="form_ticket_type"
-					value="k_tag_issue_type" 
-					display="type" 
-					name="form_ticket_type" 
-					selected="#form_ticket_type#" 
-					multiple="yes" 
-					size="3">
-				</cfselect><br><br>
-				
-				<button type="button" id="StatusSub" onclick="Clear_Type()">
-					Clear
-				</button>
-			</td>
-		
-		<!--- WGG 8/9/2014 Rep Search --->
-          <td align="center" style="vertical-align:middle;">
-            <cfoutput>
-				<br>
-				<input type="text" id="form_broker_name" name="form_broker_name" size="15" value="#form_broker_name#">
-				<br>
-				Rep Name
-				<button type="button" id="StatusSub" onclick="Clear_Name()">
-					Clear
-				</button>
-				<br>
-				<br>		
-				<input type="text" id="form_rep_id" name="form_rep_id" size="15" value="#form_rep_id#">
-				<br>
-				Rep ID
-				<button type="button" id="StatusSub" onclick="Clear_RepID()">
-					Clear
-				</button>
-			</cfoutput>
-            <br>
-            <br>
-  
-          </td>
-	
-		<tr class="list_even_odd">
-			<td align="center">
-				Ignored
-			</td>
-			
-			<td align="center" width="195">
-				Issue Reason
-			</td>		
-				
-			<td align="center">
-				Member Search
-			</td>		
-        </tr>
-
-		<tr class="list_even_odd">	
-			
-			<!--- WGG 9/6/2014 Ignored dropdown --->
-			<td align="center">
-				<cfselect query="q_sel_ignored" 
-					id="form_ticket_ignore"
-					value="is_ignored" 
-					display="ignored" 
-					name="form_ticket_ignored" 
-					selected="#form_ticket_ignored#" 
-					multiple="yes" 
-					size="3">
-				</cfselect><br><br>
-				
-				<button type="button" id="StatusSub" onclick="Clear_Ignored()">
-					Clear
-				</button>
-			</td>
-		
-					
-			<!--- WGG 6/25/2014 Issue Reason, 9/6/2014 changed position --->
-			<td align="center">
-				<cfselect query="q_sel_reason" 
-					id="form_ticket_reason"
-					value="k_tag_issue_reason" 
-					display="reason" 
-					name="form_ticket_reason" 
-					selected="#form_ticket_reason#" 
-					multiple="yes" 
-					size="3">
-				</cfselect><br><br>
-				
-				<button type="button" id="StatusSub" onclick="Clear_Reason()">
-				Clear
-				</button>
-			</td>
-
-			<!--- WGG 8/9/2014 Member Search, 9/6/2014 moved around --->
-			<td align="center" style="vertical-align:middle;">
-				<cfoutput>
-				 <!--- WGG 8/9/2014 this is needed at the moment to line up fields --->
-					<input type="text" id="form_member_name" name="form_member_name" size="15" value="#form_member_name#">
-					<br>
-					Last Name
-					<button type="button" id="StatusSub" onclick="Clear_Mem_Name()">
-					Clear
-					</button>
-					<br>
-					<br>	
-									
-					<!--- WGG 8/9/2014 Member ID --->
-					<input type="text" id="form_mem_id" name="form_mem_id" size="15" value="#form_mem_id#"></cfoutput>
-					<br>
-					Member ID
-					<button type="button" id="StatusSub" onclick="Clear_Mem()">
-					Clear
-				</button>
-			</td>	
-		</tr>
-
-		<tr class="list_even_odd">		
-			<td align="center">
-				Resolved
-			</td>
-
-			<!--- WGG 8/10/2014 testing date search --->
-			<cfif cid EQ 5 OR cid EQ 7>
-			<td align="center">
-				Date Found
-			</td>
-			</cfif>
-						
-			<!--- Internal/External Agent search --->
-			<cfif cid EQ 7>
-			<td align="center">
-				Internal/External
-			</td>
-			</cfif>
-		</tr>
-
-		<!--- WGG 9/6/2014 resolved drop down --->
-		<tr class="list_even_odd">		
-			<td align="center">
-			<cfselect query="q_sel_resolved" 
-				id="form_ticket_resolved"
-				value="is_resolved" 
-				display="resolved" 
-				name="form_ticket_resolved" 
-				selected="#form_ticket_resolved#" 
-				multiple="yes" 
-				size="3">
-			</cfselect><br><br>
-			
-			<button type="button" id="StatusSub" onclick="Clear_Resolved()">
-				Clear
-			</button>
-			</td>
-
-			
-		<!--- WGG 8/10/2014 testing date search --->
-		<cfif cid EQ 5 OR cid EQ 7>
-			<td align="center">		
-				<span style="width:30px; display:block; float:left;">From</span><cfinput type="text" size="10" name="date_from" value="#dateFormat(date_from,date_mask)#"><br> 
-				<span style="width:30px; display:block; float:left;">To</span><cfinput type="text" size="10" name="date_to" value="#dateFormat(date_to,date_mask)#"> 
-			<p align="center">
-				<button type="button" id="Date_Clear" onclick="Clear_Date()">
-					Clear
-				</button>
-			</p>
-			
-			<!--- WGG 8/10/2014 how you can see what is output from these drop downs
-			<cfoutput>#date_from# #date_to#</cfoutput>
-			--->
-			</td>
-		</cfif>			
-			
-		<!--- WGG 8/7/2014 Select internal vs external --->
-		<cfif cid EQ 7>			
-			<td align="center">
-				<cfselect query="q_sel_internal" 
-					id="form_internal"
-					value="int_ext_val" 
-					display="internal" 
-					name="form_internal" 
-					selected="#form_internal#" 
-					multiple="yes" 
-					queryPosition="Below"
-					size="3">
-					<option value="2"<cfif isdefined('form.form_internal') AND form_internal EQ 2>selected</cfif>>Unknown</option>
-				</cfselect><br><br>
-				
-				<button type="button" id="Internal" onclick="Clear_Internal()">
-					Clear
-				</button>
-			</td>
-		</cfif>
-		</tr>
-		</table>
-	</div>
-</div>
-<br>
-<!---
-################################################################
-############## Data Issues Table ##########################
-################################################################
---->
-  <div style="border-style:solid; border-width: 1px; border-radius:15px; width:95%; margin: 0 auto 0 auto; padding: 10px; background:#FFFFFF;">
-    <div align="center">
-      <span>
-        <b>
-          Data Issues
-        </b>
-      </span>
-	</div>
-	<div align="left">
-		
-	<!--- ############################################
-	################## Data Issue Headers New ############
-	################################################## --->
-	<table id="cpy" class="list_table scrolling" scroll_height="1500" style="width:98%;">
-		<tr class="list_col_hdr">
-			<td align="center">
-			Status
-			</td>
-			
-			<td align="center">
-			Ignored
-			</td>
-			
-			<td align="center" width="105">
-				Member ID
-				<br>Member Name
-				<br>---<br>
-				Issue ID
-            </td>
-
-			<td align="center">
-				Issue Type
-				<br>---<br>
-				Reason
-				<br>---<br>
-				Resolved
-            </td>
-
-<!---
-            <td align="center" width="85">
-              Date Found
-            </td>
-
-
-            <td align="center">
-              Date Resolved
-            </td>
---->
-			<!--- WGG
-            <!--- WGG 5 --->
-            <td align="center">
-              Date Ignored
-            </td>
-			--->
-			
-
-			<!--- WGG 9/7/2014 Rep Info --->
-				<td align="center">
-				Rep ID
-				<br>
-				Rep Name
-				<br>
-				Contract ID
-				<br>
-				Contract Name
-				<br>
-				Line of Business
-			</td>
-		
-			<!--- WGG 9/7/2014 comments and history --->
-            <td align="center" width="85">
-				Add Comment
-				<br>---<br>
-				Latest Comment
-				<br>---<br>
-				Last Updated By
-				<br>---<br>
-				Date
-            </td>
-
-          </tr>
-		</table>
-		
-        <!--- ############################################
-		################## Data Issue Values #############
-		################################################## --->
-      <table id="cpy" class="list_table scrolling" scroll_height="1500" width=98%>
-		<cfif q_data_issues.RecordCount EQ 0>
-		   <tr class="list_even_odd">
-            <td align="center" colspan="9">
-				0 Records Returned
-			</td>
+	<h2 align="center">Active Enrollments</h2>
+	<table id="active_enrollments_tbl" class="list_table scrolling" scroll_height="1500" width="400">
+			 <tr class="list_col_hdr">
+				<td>Active Enrollments</td>
+				<td><cfoutput>#active_enrollments.cnt#</cfoutput></td>
+			<tr class="list_col_hdr">
+				<td>This Months Enrollments</td>
+				<td><cfoutput>#enrollments_this_month.cnt#</cfoutput></td>				
 			</tr>
-		</cfif>
-		
-		<cfset toggle = 1>
-        <cfoutput query = "q_data_issues">
-          <cfif toggle gt 0>
-            <cfset even_odd = "even">
-          <cfelse>
-            <cfset even_odd = "odd">
-          </cfif>
-          <cfset toggle = toggle*-1>
-		
+			<tr class="list_col_hdr">
+				<td>This Months Dis-Enrollments</td>
+				<td><cfoutput>#disenrollments_this_month.cnt#</cfoutput></td>				
+			</tr>
+	</table>	
 
-		<tr class="list_even_odd">
-		
-		<!--- WGG 9/7/2014 Reviewed Dropdown --->
-			<td align="center">
-	
-				<select name="status_box" id="status_box" onChange="SaveStatus(this.value,#pk_TAG_data_issues#)">
-				<option value="0" 
-				<cfif k_tag_issue_status_id eq '0'>
-				Selected="selected"
-				</cfif>
-				>Not Reviewed</option> <option value="1" 
-				<cfif k_tag_issue_status_id eq '1'>
-				Selected="selected"
-				</cfif>
-				>Reviewed</option> 
-			</td>
+	<cfquery name="active_issues" datasource="#application.sys_ds#">
+		SELECT tdi.k_tag_issue_reason, tir.issue_reason_name, count(tdi.k_tag_issue_reason) as issue_count
+		FROM tag_data_issues tdi
+			inner join tag_issue_reason tir on tir.pk_tag_issue_reason = tdi.k_tag_issue_reason
+		WHERE tdi.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+			and is_ignored <> 1
+			and tdi.k_tag_issue_reason <> 1
+			and is_resolved <> 1
+		GROUP BY tdi.k_tag_issue_reason, tir.issue_reason_name
+		ORDER BY issue_count DESC
+	</cfquery>
 
-		<!--- WGG 9/7/2014 Ignored Dropdown --->
-			<td align="center">
-              <select name="is_ignored_box" id="is_ignored_box" onChange="IgnoreStatus(this.value,#pk_TAG_data_issues#)">
-              <option value="0" 
-              <cfif is_ignored eq '0'>
-                Selected="selected"
-              </cfif>
-              >Not Ignored</option> <option value="1" 
-              <cfif is_ignored eq '1'>
-                Selected="selected"
-              </cfif>
-              >Ignored</option> 
-            </td>
-			
-			<!--- Member ID --->
-			<td align="center" width="105">
-				<a href="../members/list_member.htm?memid=#pk_mem_member_master#">
-					#member_id#
-				</a>
-				
-				<!--- WGG 8/9/2014 Add member name --->
-				<br>
-				#first_name# #last_name#
-				<br>---<br>
-				#pk_TAG_data_issues#
-            </td>
-						
-			<td align="center">
-				#issue_type_name#
-				<br>---<br>
-				#issue_reason_name#
-				<br>---<br>
-				#is_resolved_word#
-            </td>
-			
-            <!--- Date Found 
-            <td align="center" width="85">
-              #dateformat(date_opened,"medium")#
-            </td>
-
-            <td align="center">
-              #date_resolved#
-            </td>
-			--->
-			<!--- WGG hiding ignored dates
-            <td align="center">
-              #date_ignored#
-            </td>
-			--->
-
-			<!--- RepID, Name Contract ID, Con Name & LOB  --->
-			<cfif (cid EQ 7 OR cid EQ 3) AND k_tag_issue_type NEQ 5>
-			<td align="center">
-				<a href="../call_center_sales/list_brokers.htm?brkid=#k_brk_broker#">
-				#broker_id#
-				</a>
-				<br>
-				#broker_name#
-
-				<cfif #k_brk_entity_contract# NEQ 0>
-				#k_brk_entity_contract#
-				</cfif>
-				
-				<br>
-				#name#
-				<br>
-				#lob_name#
-			</td>
-			</cfif>
-
-			<!--- WGG 7/25/2014 testid for client demos, cid 3, was showing an extra column possibly because DB is shared with molina cid 7 --->
-			<cfif (cid EQ 7 OR cid EQ 3) AND k_tag_issue_type EQ 5>
-            <!--- Member ID --->
-            <td align="center">
-				#team_name#
-				<br>
-				<cfif k_tag_issue_type EQ 5>
-					<cfif #team_period_start# NEQ '1900-01-01'>
-						#team_period_start#
-					</cfif>
-				<cfelseif k_tag_issue_type EQ 4>
-					<cfif #team_period_start# NEQ '1900-01-01'>
-						#team_period_start#
-					</cfif>
-				</cfif>
-            </td>
-			</cfif>
-		
-			<!--- WGG 7/8/2014 Comment --->
-			<td align="center" width="85">
-				#tag_comment#
-				<br>---<br>
-				#tag_comment_time#<br>
-				#comment_user#
-				<br>
-				<!--- WGG 9/7/2014 add comment --->
-				<input class="form_submit_button" type="button" value="Add" name="NewComment" onClick="OpenComment(#pk_TAG_data_issues#)">
-				<br>
-				<!--- WGG 7/30/2014 adding comment history --->
-				<input class="form_submit_button" type="button" value="History" name="NewComment" onClick="CommentHistory(#pk_TAG_data_issues#)">
-			</td>
-          </tr>
-        </cfoutput>
-      </table>
-      	<!--- WGG 6/26/2014 submit button --->
-		<br>
-		<input class="form_submit_button" type="submit" value="Submit" name="Submit">
-		
-    </div>
-  </div>
-  <br>
-</cfform>
-
-	<div id="darkOverlay"
-		 style="visibility: hidden;
-	     position: absolute;
-	     left: 0px;
-	     top: 0px;
-	     display:block;
-	     width: 100%;
-	     height: 200%;
-	     text-align: center;
-	     z-index: 9996;
-	     background: rgb(0, 0, 0) transparent;
-	     /* rgba with 0.6 opacity */
-	     background: rgba(0, 0, 0, 0.1);">
-		 <center><img id="spinner"
-		 	  style="visibility: hidden;
-		 	  position:fixed;
-		 	  text-align:center;
-		 	  left: 45%;
-		 	  top:40%;
-		 	  display:block;
-		 	  z-index: 9997"
-		 	  src="../images/spinner.gif"/></center>
-	</div>
-
-<!--- WGG 9/6/2014 removing scrollable as too many results 
-caused a window scroll bar and a table scroll bar right next 
-to one another which was confusing for the client 
---->
-
-
-<cfset ajaxonload("doScrollTables")>
-
-
-<cfset ajaxonload("makeSortable")>
-<!--- <cfset ajaxonload("makeSortable")> --->
+	<h2 align="center">Active Issues</h2>
+	<table id="active_issues_tbl" class="list_table scrolling" scroll_height="1500" width="400">
+		<tr class="list_col_hdr">
+				<td><b>Issue</b></td>
+				<td><b>Count</b></td>										
+		</tr>
+		<cfloop query = "active_issues"> 
+			 <tr class="list_col_hdr">
+				<td><cfoutput>#issue_reason_name#</cfoutput></td>
+				<td><cfoutput>#issue_count#</cfoutput></td>
+			</tr>
+		</cfloop>
+	</table>	
+</div>

@@ -52,8 +52,8 @@ WGG --->
   
 	SELECT
 		w.cid -- cid
-		,6 -- issues type: missing line item
-		,12 -- reason not known
+		,1 -- issues type: missing line item
+		,1 -- reason not known
 		,0 -- not ignored
 		,GETDATE() -- date opened
 		,0 -- is resolved
@@ -112,7 +112,7 @@ WGG --->
 		</cfif>
 </cfquery>
 
-<cfif cid NEQ 15 AND cid NEQ 4> <!--- WGG 7/23/2014 SPH doesn't use agencies --->
+<cfif cid NEQ 15 AND cid NEQ 4 and cid NEQ 14> <!--- WGG 7/23/2014 SPH doesn't use agencies, 9/14/2014 per BG neither does molina MP--->
 	<cfquery name="q_populate_app_outside_agency" datasource="#application.sys_ds#">
 	  /* cases where app rec is outside of broker agency */
 	INSERT INTO TAG_data_issues
@@ -289,7 +289,7 @@ WGG --->
 </cfquery>
 
 <!--- WGG 7/1/2014 note that the order is important no agency supercedes app outside agency --->
-<cfif cid NEQ 15 AND cid NEQ 4> <!--- WGG 7/23/2014 SPH and Cigna do not use agencies --->
+<cfif cid NEQ 15 AND cid NEQ 4 AND cid NEQ 14> <!--- WGG 7/23/2014 SPH and Cigna do not use agencies 9/16/2014 neither does MolinaMP --->
 	<cfquery name="q_populate_no_agency" datasource="#application.sys_ds#">
 	
 		/* Populating data issues where enrolling rep has no agency for windows with
@@ -658,6 +658,24 @@ WHERE 1=1
     </cfquery>
 </cfif>
 
+
+ <cfquery name="q_set_reason_no_rep" datasource="#application.sys_ds#">
+   UPDATE TAG_data_issues
+   SET k_tag_issue_reason =13 -- reason is no broker associated with window
+   FROM TAG_data_issues di
+   WHERE
+     di.pk_TAG_data_issues in (
+       SELECT di2.pk_TAG_data_issues
+       FROM TAG_data_issues di2
+       WHERE di2.k_brk_broker not in (
+         SELECT becj.k_brk_broker
+         FROM BRK_broker__BRK_Universal_contract_JOIN becj
+       )
+     )
+     AND di.k_tag_issue_type = 1
+   </cfquery>
+
+
 <!--- 
 #######################################################
 ########### Resolve Line Item Issues###################
@@ -665,14 +683,17 @@ WHERE 1=1
 --->
 <cfquery name="q_resolve_line_item" datasource="#application.sys_ds#" result="resolve_result">
   /* Resolve Missing Line Item Issues */
-  UPDATE tdi
-  SET tdi.is_resolved = 1, tdi.date_resolved = GETDATE()
-  FROM tag_data_issues tdi
-    INNER JOIN mem_membership_window w2
-      ON w2.pk_mem_membership_window = tdi.k_mem_membership_window
-  WHERE tdi.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
-  AND w2.K_BRK_entity_contract_line_item is NOT NULL
-  AND tdi.k_tag_issue_type = 1
+	UPDATE tdi
+	SET tdi.is_resolved = 1, tdi.date_resolved = GETDATE()
+	
+	FROM tag_data_issues tdi
+		INNER JOIN mem_membership_window w2
+    	ON w2.pk_mem_membership_window = tdi.k_mem_membership_window
+	WHERE tdi.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+		AND w2.K_BRK_entity_contract_line_item is NOT NULL
+	AND tdi.k_tag_issue_type = 1
+	AND tdi.is_resolved <> 1
+  
 </cfquery>
 
 <cfquery name="q_resolve_agency" datasource="#application.sys_ds#" result="resolve_result">
@@ -686,18 +707,20 @@ WHERE 1=1
 	WHERE tdi.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
 		AND tdi.k_tag_issue_type = 2
 		AND w2.application_date between baj2.start_date AND ISNULL(baj2.end_date,'2199-01-01')
+		AND tdi.is_resolved <> 1
 </cfquery>
 
 <cfquery name="q_resolve_team_goal" datasource="#application.sys_ds#">
-UPDATE tdi
-SET tdi.is_resolved = 1, tdi.date_resolved = GETDATE()
-FROM tag_data_issues tdi
-	LEFT JOIN vw_tea_team_metric_period ttmp
-	ON ttmp.k_tea_team = tdi.k_tea_team
-	AND ttmp.period_start = tdi.team_period_start
-WHERE ttmp.cid = 7 
-	AND ttmp.goal > 0
-	AND ttmp.k_tea_team NOT IN (442, 405)
+	UPDATE tdi
+	SET tdi.is_resolved = 1, tdi.date_resolved = GETDATE()
+	FROM tag_data_issues tdi
+		LEFT JOIN vw_tea_team_metric_period ttmp
+		ON ttmp.k_tea_team = tdi.k_tea_team
+		AND ttmp.period_start = tdi.team_period_start
+	WHERE ttmp.cid = 7 
+		AND ttmp.goal > 0
+		AND ttmp.k_tea_team NOT IN (442, 405)
+		AND tdi.is_resolved <> 1
 </cfquery>
 
 <cfquery name="q_resolve_app_outside_team" datasource="#application.sys_ds#">
@@ -727,6 +750,21 @@ FROM tag_data_issues tdi
     AND w.application_date BETWEEN ttj.start_date AND ISNULL(ttj.end_date, '2199-01-01')
     /* Effective date is in the last 3 months */
 	AND ttj.K_tea_team NOT IN (455, 457)
+	AND tdi.is_resolved <> 1
+</cfquery>
+
+<cfquery name="q_resolve_app_before_start" datasource="#application.sys_ds#">
+	UPDATE tdi
+	SET tdi.is_resolved = 1, tdi.date_resolved = GETDATE()
+	
+	FROM tag_data_issues tdi
+		INNER JOIN mem_membership_window w2
+    	ON w2.pk_mem_membership_window = tdi.k_mem_membership_window
+	WHERE tdi.cid = <cfqueryparam value="#cid#" cfsqltype="cf_sql_integer">
+		AND w2.K_BRK_entity_contract_line_item is NOT NULL
+		AND tdi.k_tag_issue_type = 6
+		AND tdi.is_resolved <> 1
+		AND w2.application_date <= w2.start_date
 </cfquery>
 	
 <cfoutput>

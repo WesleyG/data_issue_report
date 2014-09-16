@@ -453,17 +453,18 @@ function SaveComment() {
 	reason =  --reason is the alias
 		CASE k_tag_issue_reason
 	        WHEN 1  THEN 'Unknown'
-    	    WHEN 2 THEN 'No Rep Contract'
-			WHEN 3 THEN 'App Rec Outside Contract'
-			WHEN 4 THEN 'No Universal Contract'
-			WHEN 5 THEN 'No Agency'
-			WHEN 6 THEN 'App Rec Outside Agency'
+    	    WHEN 2  THEN 'No Rep Contract'
+			WHEN 3  THEN 'App Rec Outside Contract'
+			WHEN 4  THEN 'No Universal Contract'
+			WHEN 5  THEN 'No Agency'
+			WHEN 6  THEN 'App Rec Outside Agency'
 	        WHEN 7  THEN 'No Group Match'
     	    WHEN 8  THEN 'App Rec Outside Universal'
 			WHEN 9  THEN 'App Rec Outside Team'
-			WHEN 10  THEN 'App Rec Outside Regional Team'
-			WHEN 11  THEN 'No Team Goal'
-			WHEN 12  THEN 'App date after start'
+			WHEN 10 THEN 'App Rec Outside Regional Team'
+			WHEN 11 THEN 'No Team Goal'
+			WHEN 12 THEN 'App date after start'
+			WHEN 13 THEN 'No Rep'
         	ELSE 'Unknown'
 		END
 	,k_tag_issue_reason
@@ -915,8 +916,7 @@ function SaveComment() {
             </td>
 			--->
 
-			<!--- RepID, Name Contract ID, Con Name & LOB  --->
-			<cfif (cid EQ 7 OR cid EQ 3) AND k_tag_issue_type NEQ 5>
+			<cfif k_tag_issue_type NEQ 5>
 			<td align="center">
 				<a href="../call_center_sales/list_brokers.htm?brkid=#k_brk_broker#">
 				#broker_id#
@@ -930,13 +930,16 @@ function SaveComment() {
 				
 				<br>
 				#name#
+				<!--- WGG 9/16/2014 don't show LOB for marketplace --->
+				<cfif cid NEQ 14>
 				<br>
 				#lob_name#
+				</cfif>
 			</td>
 			</cfif>
 
 			<!--- WGG 7/25/2014 testid for client demos, cid 3, was showing an extra column possibly because DB is shared with molina cid 7 --->
-			<cfif (cid EQ 7 OR cid EQ 3) AND k_tag_issue_type EQ 5>
+			<cfif k_tag_issue_type EQ 5>
             <!--- Member ID --->
             <td align="center">
 				#team_name#
