@@ -87,8 +87,7 @@ pk_ticket
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
 			INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
+		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE(), 101)
 			AND ttt.login_id = 'hca10'
 		ORDER BY ttt.date_tracked
 	</cfquery>
@@ -97,8 +96,7 @@ pk_ticket
 		SELECT sum(time_tracked) AS wes_hours
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
+		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE(), 101)
 			AND ttt.login_id = 'hca10'
 		GROUP BY login_id
 	</cfquery>	
@@ -186,8 +184,7 @@ pk_ticket
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
 			INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
+		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE(), 101)
 			AND ttt.login_id = 'hca8'
 		ORDER BY ttt.date_tracked
 	</cfquery>
@@ -196,8 +193,7 @@ pk_ticket
 		SELECT sum(time_tracked) AS wes_hours
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
+		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE(), 101)
 			AND ttt.login_id = 'hca8'
 		GROUP BY login_id
 	</cfquery>	
@@ -286,8 +282,7 @@ pk_ticket
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
 			INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
+		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE(), 101)
 			AND ttt.login_id = 'hca15'
 		ORDER BY ttt.date_tracked
 	</cfquery>
@@ -296,8 +291,7 @@ pk_ticket
 		SELECT sum(time_tracked) AS wes_hours
 		FROM ticket_time_tracking ttt
 			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
+		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE(), 101)
 			AND ttt.login_id = 'hca15'
 		GROUP BY login_id
 	</cfquery>	
@@ -314,7 +308,7 @@ pk_ticket
 				<td><b>Hours</b></td>
 				<td><b>Work Type</b></td>									
 		</tr>
-		<cfloop query = "bg_hours"> 
+		<cfloop query = "ez_hours"> 
 			 <tr class="list_col_hdr">
 				<td>
 					<cfif client_name EQ 'Unknown'>
@@ -334,7 +328,7 @@ pk_ticket
 			</tr>
 		</cfloop>
 		
-		<cfloop query = "bg_hours_total"> 
+		<cfloop query = "ez_hours_total"> 
 		<tr class="list_col_hdr">
 				<td></td>
 				<td></td>
@@ -348,307 +342,4 @@ pk_ticket
 	</table>	
 	
 	<!--- WGG 9/9/2014 end of Ellen's hours --->	
-</div>
-
-<!--- WGG 9/9/2014 Div for Yesterday's hours --->
-<div style="float:left; margin-left:50px">
-		
-	<!--- WGG 9/9/2014 Alma's Hours Yesterday--->
-	<cfquery name="alma_hours_yest" datasource="#application.ticket_ds#">
-		SELECT t.cid
-			,t.pk_ticket
-			,t.k_ticket_number
-			,wt.work_name
-			,client_name = 
-				CASE t.k_clnt_client
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					WHEN 99 THEN 'HCA'
-					ELSE 'Unknown'
-				END
-			,client_name2 = 
-				CASE t.cid
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					WHEN 99 THEN 'HCA'
-					ELSE 'Unknown'
-				END			
-			,t.subject AS ticket
-			,ttt.comment
-			,ttt.date_tracked
-			,ttt.time_tracked
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-			INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-2)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE())
-			AND ttt.login_id = 'hca10'
-		ORDER BY ttt.date_tracked
-	</cfquery>
-	
-	<cfquery name="alma_hours_total_yest" datasource="#application.ticket_ds#">
-		SELECT sum(time_tracked) AS wes_hours
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-2)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE())
-			AND ttt.login_id = 'hca10'
-		GROUP BY login_id
-	</cfquery>	
-	
-
-	<h2 align="center">Almas Hours Yesterday</h2>
-	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width="400">
-		<tr class="list_col_hdr">
-				<td><b>Client</b></td>
-				<td><b>Ticket #</b></td>	
-				<td><b>Ticket</b></td>	
-				<td><b>Comment</b></td>		
-				<td><b>Time Started</b></td>	
-				<td><b>Hours</b></td>
-				<td><b>Work Type</b></td>									
-		</tr>
-		<cfloop query = "alma_hours_yest"> 
-			 <tr class="list_col_hdr">
-				<td>
-					<cfif client_name EQ 'Unknown'>
-						<cfoutput>#client_name2#</cfoutput></td>
-					<cfelse>
-						<cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->	
-					</cfif>
-				<td><cfoutput><a href="../ticket/list_ticket.htm?id=#pk_ticket#" target="_new">#k_ticket_number#</a></cfoutput></td>
-				<td><cfoutput>#ticket#</cfoutput></td>
-				<td><cfoutput>#comment#</cfoutput></td>
-				<!---
-				<td><cfoutput>#date_tracked#</cfoutput></td>
-				--->
-				<td><cfoutput>#dateformat(date_tracked, "mm-dd-yy")# #TimeFormat(date_tracked, "hh:mm tt")#</cfoutput></td>
-				<td><cfoutput>#time_tracked#</cfoutput></td>
-				<td><cfoutput>#work_name#</cfoutput></td>
-			</tr>
-		</cfloop>
-		
-		<cfloop query = "alma_hours_total_yest"> 
-		<tr class="list_col_hdr">
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-					<td></td>
-				<td><b> TotalHours</b></td>		
-				<td><cfoutput><b>#wes_hours#</b></cfoutput></td>							
-		</tr>
-		</cfloop>
-	</table>
-	<!--- WGG 9/9/2014 end of Alma's hours Yesterday--->
-	
-	<!--- WGG 9/9/2014 Bridgette's Hours Yesterday --->
-	<cfquery name="bg_hours_yest" datasource="#application.ticket_ds#">
-		SELECT t.cid
-			,t.pk_ticket
-			,t.k_ticket_number
-			,wt.work_name
-			,client_name = 
-				CASE t.k_clnt_client
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					WHEN 99 THEN 'HCA'
-					ELSE 'Unknown'
-				END
-			,client_name2 = 
-				CASE t.cid
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					WHEN 99 THEN 'HCA'
-					ELSE 'Unknown'
-				END			
-			,t.subject AS ticket
-			,ttt.comment
-			,ttt.date_tracked
-			,ttt.time_tracked
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-			INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-2)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE())
-			AND ttt.login_id = 'hca8'
-		ORDER BY ttt.date_tracked
-	</cfquery>
-	
-	<cfquery name="bg_hours_total_yest" datasource="#application.ticket_ds#">
-		SELECT sum(time_tracked) AS wes_hours
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
-			AND ttt.login_id = 'hca8'
-		GROUP BY login_id
-	</cfquery>	
-	
-
-	<h2 align="center">Bridgette's Hours Yesterday</h2>
-	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width="400">
-		<tr class="list_col_hdr">
-				<td><b>Client</b></td>
-				<td><b>Ticket #</b></td>	
-				<td><b>Ticket</b></td>	
-				<td><b>Comment</b></td>		
-				<td><b>Time Started</b></td>	
-				<td><b>Hours</b></td>
-				<td><b>Work Type</b></td>									
-		</tr>
-		<cfloop query = "bg_hours_yest"> 
-			 <tr class="list_col_hdr">
-				<td>
-					<cfif client_name EQ 'Unknown'>
-						<cfoutput>#client_name2#</cfoutput></td>
-					<cfelse>
-						<cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->	
-					</cfif>
-				<td><cfoutput><a href="../ticket/list_ticket.htm?id=#pk_ticket#" target="_new">#k_ticket_number#</a></cfoutput></td>
-				<td><cfoutput>#ticket#</cfoutput></td>
-				<td><cfoutput>#comment#</cfoutput></td>
-				<!---
-				<td><cfoutput>#date_tracked#</cfoutput></td>
-				--->
-				<td><cfoutput>#dateformat(date_tracked, "mm-dd-yy")# #TimeFormat(date_tracked, "hh:mm tt")#</cfoutput></td>
-				<td><cfoutput>#time_tracked#</cfoutput></td>
-				<td><cfoutput>#work_name#</cfoutput></td>
-			</tr>
-		</cfloop>
-		
-		<cfloop query = "bg_hours_total_yest"> 
-		<tr class="list_col_hdr">
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-					<td></td>
-				<td><b> TotalHours</b></td>		
-				<td><cfoutput><b>#wes_hours#</b></cfoutput></td>							
-		</tr>
-		</cfloop>
-	</table>	
-	
-	<!--- WGG 9/9/2014 end of Bridgette's hours yesterday --->
-	
-	<!--- WGG 9/9/2014 Ellen's Hours yesterday --->
-	<cfquery name="ez_hours_yest" datasource="#application.ticket_ds#">
-		SELECT t.cid
-			,t.pk_ticket
-			,t.k_ticket_number
-			,wt.work_name
-			,client_name = 
-				CASE t.k_clnt_client
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					WHEN 99 THEN 'HCA'
-					ELSE 'Unknown'
-				END
-			,client_name2 = 
-				CASE t.cid
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					WHEN 99 THEN 'HCA'
-					ELSE 'Unknown'
-				END			
-			,t.subject AS ticket
-			,ttt.comment
-			,ttt.date_tracked
-			,ttt.time_tracked
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-			INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-1)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE()+1)
-			AND ttt.login_id = 'hca15'
-		ORDER BY ttt.date_tracked
-	</cfquery>
-	
-	<cfquery name="ez_hours_total_yest" datasource="#application.ticket_ds#">
-		SELECT sum(time_tracked) AS wes_hours
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE ttt.date_tracked > DATEDIFF(DAY, 0, GETDATE()-2)
-			AND ttt.date_tracked < DATEDIFF(DAY, 0, GETDATE())
-			AND ttt.login_id = 'hca15'
-		GROUP BY login_id
-	</cfquery>	
-	
-
-	<h2 align="center">Ellen's Hours Yesterday</h2>
-	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width="400">
-		<tr class="list_col_hdr">
-				<td><b>Client</b></td>
-				<td><b>Ticket #</b></td>	
-				<td><b>Ticket</b></td>	
-				<td><b>Comment</b></td>		
-				<td><b>Time Started</b></td>	
-				<td><b>Hours</b></td>
-				<td><b>Work Type</b></td>									
-		</tr>
-		<cfloop query = "ez_hours_yest"> 
-			 <tr class="list_col_hdr">
-				<td>
-					<cfif client_name EQ 'Unknown'>
-						<cfoutput>#client_name2#</cfoutput></td>
-					<cfelse>
-						<cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->	
-					</cfif>
-				<td><cfoutput><a href="../ticket/list_ticket.htm?id=#pk_ticket#" target="_new">#k_ticket_number#</a></cfoutput></td>
-				<td><cfoutput>#ticket#</cfoutput></td>
-				<td><cfoutput>#comment#</cfoutput></td>
-				<!---
-				<td><cfoutput>#date_tracked#</cfoutput></td>
-				--->
-				<td><cfoutput>#dateformat(date_tracked, "mm-dd-yy")# #TimeFormat(date_tracked, "hh:mm tt")#</cfoutput></td>
-				<td><cfoutput>#time_tracked#</cfoutput></td>
-				<td><cfoutput>#work_name#</cfoutput></td>
-			</tr>
-		</cfloop>
-		
-		<cfloop query = "ez_hours_total_yest"> 
-		<tr class="list_col_hdr">
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-					<td></td>
-				<td><b> TotalHours</b></td>		
-				<td><cfoutput><b>#wes_hours#</b></cfoutput></td>							
-		</tr>
-		</cfloop>
-	</table>	
-	
-	<!--- WGG 9/9/2014 end of Ellen's hours yesterday --->	
 </div>
