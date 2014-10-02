@@ -68,7 +68,8 @@ pk_ticket
 	WHERE pk_ticket = <cfqueryparam value="#val(pk_ticket)#" cfsqltype="cf_sql_integer"/>
 </cfquery>
 	
-<script>
+<script type="text/javascript">
+
 function HideTimeTracking() {
 	 document.getElementById("darkOverlay").style.visibility = "hidden";
 	document.getElementById("spinner").style.visibility = "hidden";
@@ -76,9 +77,9 @@ function HideTimeTracking() {
 }
 
 function OpenTimeTracking() {
-	//alert('test');
-	$("#timeTrackingDiv").show();
-	$("#comment").focus();
+	alert('test');
+	//$("#timeTrackingDiv").show();
+	//$("#comment").focus();
 }
 
 function SaveTimeTracking(x) {
@@ -93,6 +94,7 @@ function SaveTimeTracking(x) {
 	// WGG 09/02/2014 adding start time tracking
 	var startTrked = $("#startTracked").val();
 	var datetime = dateTrked+' '+startTrked;
+}	
 </script>
 
 <!--- WGG 8/31/2014 creates white backbround instead of grey border halfway up page --->
@@ -184,7 +186,8 @@ function SaveTimeTracking(x) {
 					<td><b>Comment</b></td>		
 					<td><b>Time Started</b></td>	
 					<td><b>Hours</b></td>
-					<td><b>Work Type</b></td>									
+					<td><b>Work Type</b></td>
+					<td><b>Edit</b></td>							
 			</tr>
 			<cfloop query = "my_hours"> 
 				 <tr class="list_col_hdr">
@@ -203,6 +206,11 @@ function SaveTimeTracking(x) {
 					<td><cfoutput>#dateformat(date_tracked, "mm-dd-yy")# #TimeFormat(date_tracked, "hh:mm tt")#</cfoutput></td>
 					<td><cfoutput>#time_tracked#</cfoutput></td>
 					<td><cfoutput>#work_name#</cfoutput></td>
+					<!---<td><cfoutput><a href="../ticket/list_ticket.htm?id=#pk_ticket#" target="_new">#k_ticket_number#</a></cfoutput></td> --->
+					<!--- WGG 10/2/2014 this works
+					<td><a href="javascript:alert('Hello!');">Edit</a></td>
+					--->
+					<td><a href="#" onClick="OpenTimeTracking();">Edit</a></td>
 				</tr>
 			</cfloop>
 			
@@ -214,7 +222,8 @@ function SaveTimeTracking(x) {
 					<td></td>
 						<td></td>
 					<td><b> TotalHours</b></td>		
-					<td><cfoutput><b>#wes_hours#</b></cfoutput></td>							
+					<td><cfoutput><b>#wes_hours#</b></cfoutput></td>	
+					<td></td>						
 			</tr>
 			</cfloop>
 		</table>
