@@ -1,0 +1,147 @@
+<!--- WGG 10/02/2014 making time tracking editable --->
+<cfquery name="getWorkType" datasource="#ticket_ds#">
+  SELECT pk_work_type, work_name
+  FROM work_type
+</cfquery>
+
+<cfquery name="get_login" datasource="#application.sys_ds#">
+  SELECT login_id
+  FROM usr_operator
+  WHERE pk_usr_operator = #session.login.k_usr_operator#
+</cfquery>
+
+<cfquery name="getTimeDetail" datasource="#ticket_ds#">
+SELECT pk_ticket_time_tracking
+      ,k_ticket
+      ,k_usr_operator
+      ,time_tracked
+      ,comment
+      ,cid
+      ,time_stamp
+      ,k_work_type
+      ,date_tracked
+      ,login_id
+    ,work_type.work_name
+  FROM ticket_time_tracking
+  INNER JOIN work_type
+    ON work_type.pk_work_type = ticket_time_tracking.k_work_type
+  WHERE pk_ticket_time_tracking = <cfqueryparam value="#val(id)#" cfsqltype="cf_sql_integer"/>
+</cfquery>
+
+<cfquery name="q_ticket_id" datasource="#application.ticket_ds#">
+  SELECT  pk_ticket
+      ,k_ticket_type
+      ,k_ticket_priority
+      ,k_ticket_status
+      ,k_ticket_status_name
+      ,k_ticket_type_name
+      ,subject
+      ,k_USR_operator
+      ,sub_time_stamp
+      ,complete_time_stamp
+      ,k_USR_operator_name as login_id
+      ,k_USR_operator_assigned_name as assigned_name
+      ,k_ticket_number
+      ,description
+      ,member_id
+      ,broker_id
+      ,expected_outcome
+      ,location_name
+      ,est_hours
+      ,due_date
+      ,est_start_date
+      ,cid
+      ,k_clnt_client
+      ,k_ticket_objective
+    FROM  ticket
+  INNER JOIN ticket_type ON k_ticket_type = pk_ticket_type
+  INNER JOIN ticket_status ON k_ticket_status = pk_ticket_status
+  LEFT JOIN ticket_location ON k_ticket_location = pk_ticket_location
+  WHERE pk_ticket = <cfoutput>#getTimeDetail.k_ticket#</cfoutput>
+</cfquery>
+
+  <div id="darkOverlay"
+     style="visibility: hidden;
+       position: absolute;
+       left: 0px;
+       top: 0px;
+       display:block;
+       width: 100%;
+       height: 200%;
+       text-align: center;
+       z-index: 9996;
+       background: rgb(0, 0, 0) transparent;
+       /* rgba with 0.6 opacity */
+       background: rgba(0, 0, 0, 0.1);">
+     <center><img id="spinner"
+        style="visibility: hidden;
+        position:fixed;
+        text-align:center;
+        left: 45%;
+        top:40%;
+        display:block;
+        z-index: 9997"
+        src="../images/spinner.gif"/></center>
+  </div>
+<cfoutput query="getTimeDetail">
+<div id="timeTrackingDiv" style="float:left; position:absolute; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:200%; padding:20px;background-color: rgba(0, 0, 0, .7);">
+  <div id="timeTrackingWindow" style="position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:15px 15px 15px 15px; width:670px; left:32%; top:35%">
+    <b>Time Tracking (All fields are required)</b>
+    <table class="form_table">
+      <cfoutput><input type="hidden" value="#getTimeDetail.k_ticket#" id="k_ticket2" name="k_ticket"></cfoutput>
+      <tr>
+        <td class="form_field_name">Date Worked: (mm/dd/yyyy)</td>
+        <cfoutput><td class="form_field_entry"><input name="dateTracked" id="dateTracked" value="#dateformat(getTimeDetail.date_tracked,date_mask)#"></td></cfoutput>
+      </tr>
+
+      <!--- WGG 09/22/2014 start_time tracking for WG only --->
+      <cfif get_login.login_id EQ 'hca6'>
+        <tr>
+          <td class="form_field_name">Start Time</td>
+          <cfoutput>
+          <td class="form_field_entry"><input name="startTracked" id="startTracked" value="#TimeFormat(getTimeDetail.date_tracked, "hh:mm:sstt")#"> (ex: For Eight AM enter 08:00 AM)</td>
+          </cfoutput>
+        </tr>
+      <cfelse>
+        <tr style="display: none;">
+          <td class="form_field_name">Start Time</td>
+          <cfoutput>
+          <td class="form_field_entry"><input name="startTracked" id="startTracked" value="#TimeFormat(getTimeDetail.date_tracked, "hh:mm:sstt")#"> (ex: For Eight AM enter 08:00 AM)</td>
+          </cfoutput>
+        </tr>
+      </cfif>
+
+      <tr>
+        <td class="form_field_name">Time Worked: (Hours)</td>
+        <td class="form_field_entry"><input name="hrs" id="hoursTracked" value="#getTimeDetail.time_tracked#"> (ex: For 30 minutes enter 0.5)</td>
+         
+      </tr>
+      <tr>
+        <td class="form_field_name">Work Type:</td>
+        <td class="list_td">
+          <cfform>
+            <cfselect name = "k_ticket_type"
+              id="workType"        
+              query = "getWorkType" 
+                  display ="work_name" 
+                  value ="pk_work_type" 
+                  queryPosition="Below"
+                  selected="#getTimeDetail.k_work_type#" 
+                  style="width:150px;">
+              </cfselect></td>
+          </cfform>
+      </tr>
+      <tr>
+        <td class="form_field_name">Comment:</td>
+        <td class="form_field_entry"><textarea rows="5" cols="60" id="time_track_comment" name="comment" wrap="hard">#getTimeDetail.comment#</textarea></td>
+      </tr>
+      <tr>
+        <cfoutput><td class="form_field_name" colspan="2"><button id="SaveComment" onclick="SaveTimeTracking(#q_ticket_id.cid#,#getTimeDetail.pk_ticket_time_tracking#)">Save</button></cfoutput>
+        <button id="HideComment" onclick="HideTimeTracking()">Close</button></td>
+      </tr>
+    </table>
+    
+        
+  </div>
+</div>
+</cfoutput>

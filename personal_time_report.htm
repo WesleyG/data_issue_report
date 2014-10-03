@@ -21,23 +21,24 @@
 hours_worked
 k_data_source
 pk_ticket
+pk_ticket_time_tracking
 ">
 <cfinclude template="../cf_includes/set_defaults.htm">
 <!--- END set defaults for brk_sales_activity_log --->
 
 <cfif k_data_source EQ ''>
-	<cfset k_data_source = 3>
+<cfset k_data_source = 3>
 </cfif>
 
 <!--- WGG 10/02/2014 making time tracking editable --->
 <cfquery name="get_login" datasource="#application.sys_ds#">
-	SELECT login_id
-	FROM usr_operator
-	WHERE pk_usr_operator = #session.login.k_usr_operator#
+SELECT login_id
+FROM usr_operator
+WHERE pk_usr_operator = #session.login.k_usr_operator#
 </cfquery>
 
 <cfquery name="q_ticket_id" datasource="#application.ticket_ds#">
-	SELECT 	pk_ticket
+SELECT pk_ticket
       ,k_ticket_type
       ,k_ticket_priority
       ,k_ticket_status
@@ -61,363 +62,321 @@ pk_ticket
       ,cid
       ,k_clnt_client
       ,k_ticket_objective
- 		FROM 	ticket
-	INNER JOIN ticket_type ON k_ticket_type = pk_ticket_type
-	INNER JOIN ticket_status ON k_ticket_status = pk_ticket_status
-	LEFT JOIN ticket_location ON k_ticket_location = pk_ticket_location
-	WHERE pk_ticket = <cfqueryparam value="#val(pk_ticket)#" cfsqltype="cf_sql_integer"/>
+FROM ticket
+INNER JOIN ticket_type ON k_ticket_type = pk_ticket_type
+INNER JOIN ticket_status ON k_ticket_status = pk_ticket_status
+LEFT JOIN ticket_location ON k_ticket_location = pk_ticket_location
+WHERE pk_ticket = <cfqueryparam value="#val(pk_ticket)#" cfsqltype="cf_sql_integer"/>
 </cfquery>
-	
+
 <script type="text/javascript">
 
 function HideTimeTracking() {
-	 document.getElementById("darkOverlay").style.visibility = "hidden";
-	document.getElementById("spinner").style.visibility = "hidden";
-	$("#timeTrackingDiv").hide();
+//alert('test');
+document.getElementById("darkOverlay").style.visibility = "hidden";
+document.getElementById("spinner").style.visibility = "hidden";
+$("#timeTrackingDiv").hide();
 }
 
-function OpenTimeTracking() {
-	alert('test');
-	//$("#timeTrackingDiv").show();
-	//$("#comment").focus();
-}
+function OpenTimeTracking(x) {
+//alert('test');
+  $.ajax({
+          type: "POST",
+          url: "edit_time_tracking.htm",
+          data: { id: x},
+          success: function(data){
+  $('#TimeWorked').html(data);
+  }
+        })
+    }
 
-function SaveTimeTracking(x) {
-	document.getElementById("darkOverlay").style.visibility = "visible";
-	document.getElementById("spinner").style.visibility = "visible";
-	
-	var id = $("#k_ticket2").val();
-	var commentID = $("#time_track_comment").val();
-	var workType = $("#workType").val();
-	var hrs = $("#hoursTracked").val();
-	var dateTrked = $("#dateTracked").val();
-	// WGG 09/02/2014 adding start time tracking
-	var startTrked = $("#startTracked").val();
-	var datetime = dateTrked+' '+startTrked;
-}	
+function SaveTimeTracking(x,y) {
+document.getElementById("darkOverlay").style.visibility = "visible";
+document.getElementById("spinner").style.visibility = "visible";
+
+var commentID = $("#time_track_comment").val();
+var workType = $("#workType").val();
+var hrs = $("#hoursTracked").val();
+var dateTrked = $("#dateTracked").val();
+// WGG 09/02/2014 adding start time tracking
+var startTrked = $("#startTracked").val();
+var datetime = dateTrked+' '+startTrked;
+
+$.ajax({
+          type: "POST",
+          url: "edit_ticket_time_tracking.cfm",
+          data: { id: y, commentID: commentID, dateTrked: datetime, hrs: hrs, worktype: workType, true_cid: x, },
+          success: function(){
+  location.reload(); 
+  }
+        })
+  
+}
 </script>
 
 <!--- WGG 8/31/2014 creates white backbround instead of grey border halfway up page --->
 <style>
 .wufoo_container {
-	height:2000px;
+height:2000px;
 }
 </style>
 
 <cfquery name="sel_login" datasource="#application.sys_ds#">
-	SELECT login_id
-	FROM USR_operator
-	where pk_USR_operator = #session.login.K_USR_operator#
+SELECT login_id
+FROM USR_operator
+where pk_USR_operator = #session.login.K_USR_operator#
 </cfquery>
 
 <!--- WGG 9/3/2014 shows you what the user's login id is
 
 <cfloop query = "sel_login"> 
-	<cfoutput>#login_id#</cfoutput>
+<cfoutput>#login_id#</cfoutput>
 </cfloop>
 --->
 
 <!--- WGG 9/18/2014 outputting a loop 
 <cfloop from=0 to=5 index=x>
-	<cfoutput>#x#</cfoutput>
+<cfoutput>#x#</cfoutput>
 </cfloop>
 --->
 
 
 <div style="float:left">
-	<cfloop from=0 to=5 index=x>
-	<cfquery name="my_hours" datasource="#application.ticket_ds#">
-		SELECT t.cid
-			,t.pk_ticket
-			,t.k_ticket_number
-			,wt.work_name
-			,client_name = 
-				CASE t.k_clnt_client
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					WHEN 99 THEN 'HCA'
-					ELSE 'Unknown'
-				END
-			,client_name2 = 
-				CASE t.cid
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					WHEN 99 THEN 'HCA'
-					ELSE 'Unknown'
-				END			
-			,t.subject AS ticket
-			,ttt.comment
-			,ttt.date_tracked
-			,ttt.time_tracked
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-			INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
-		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
-			AND login_id =<cfloop query = "sel_login">'#login_id#'</cfloop>
-		ORDER BY ttt.date_tracked
-	</cfquery>
-	
-	<cfquery name="my_hours_total" datasource="#application.ticket_ds#">
-		SELECT sum(time_tracked) AS wes_hours
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
-			AND login_id = <cfloop query = "sel_login">'#login_id#'</cfloop>
-		GROUP BY login_id
-	</cfquery>	
-	
-
-	<cfoutput><h2 align="center">My Hours #DateFormat(Now()-x)#</h2></cfoutput>
-		<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width="400">
-			<tr class="list_col_hdr">
-					<td><b>Client</b></td>
-					<td><b>Ticket #</b></td>	
-					<td><b>Ticket</b></td>	
-					<td><b>Comment</b></td>		
-					<td><b>Time Started</b></td>	
-					<td><b>Hours</b></td>
-					<td><b>Work Type</b></td>
-					<td><b>Edit</b></td>							
-			</tr>
-			<cfloop query = "my_hours"> 
-				 <tr class="list_col_hdr">
-					<td>
-						<cfif client_name EQ 'Unknown'>
-							<cfoutput>#client_name2#</cfoutput></td>
-						<cfelse>
-							<cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query --->	
-						</cfif>
-					<td><cfoutput><a href="../ticket/list_ticket.htm?id=#pk_ticket#" target="_new">#k_ticket_number#</a></cfoutput></td>
-					<td><cfoutput>#ticket#</cfoutput></td>
-					<td><cfoutput>#comment#</cfoutput></td>
-					<!---
-					<td><cfoutput>#date_tracked#</cfoutput></td>
-					--->
-					<td><cfoutput>#dateformat(date_tracked, "mm-dd-yy")# #TimeFormat(date_tracked, "hh:mm tt")#</cfoutput></td>
-					<td><cfoutput>#time_tracked#</cfoutput></td>
-					<td><cfoutput>#work_name#</cfoutput></td>
-					<!---<td><cfoutput><a href="../ticket/list_ticket.htm?id=#pk_ticket#" target="_new">#k_ticket_number#</a></cfoutput></td> --->
-					<!--- WGG 10/2/2014 this works
-					<td><a href="javascript:alert('Hello!');">Edit</a></td>
-					--->
-					<td><a href="#" onClick="OpenTimeTracking();">Edit</a></td>
-				</tr>
-			</cfloop>
-			
-			<cfloop query = "my_hours_total"> 
-			<tr class="list_col_hdr">
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-						<td></td>
-					<td><b> TotalHours</b></td>		
-					<td><cfoutput><b>#wes_hours#</b></cfoutput></td>	
-					<td></td>						
-			</tr>
-			</cfloop>
-		</table>
-		<br>
-		<br>
-	</cfloop>
-</div>
-
-<div style="float:left; margin-left:40px">
 <cfloop from=0 to=5 index=x>
-	<cfquery name="todays_hours_by_client" datasource="#application.ticket_ds#">
-		SELECT 
-			 t.cid AS client_cid
-			 ,client_name = 
-				 CASE t.cid
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					ELSE 'Unknown'
-				END
-			,t.k_clnt_client
-			,client_name2 = 
-				 CASE t.k_clnt_client
-					WHEN 2 THEN 'CDPHP'
-					WHEN 3 THEN 'HCA'
-					WHEN 4 THEN 'CIGNA'
-					WHEN 5 THEN 'SCAN'
-					WHEN 7 THEN 'MOLINA MAPD'
-					WHEN 14 THEN 'MOLINA MP'
-					WHEN 15 THEN 'SOUNDPATH'
-					WHEN 99 THEN 'HCA'
-					ELSE 'Unknown'
-				END
-			,sum(ttt.time_tracked) AS hours_worked
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
-			AND login_id = <cfloop query = "sel_login">'#login_id#'</cfloop>
-		GROUP BY t.cid,t.k_clnt_client
-	</cfquery>
-	
-	<cfquery name="todays_hours_by_client_total" datasource="#application.ticket_ds#">
-		SELECT 
-			sum(ttt.time_tracked) AS total_hours_worked
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
-			AND login_id = <cfloop query = "sel_login">'#login_id#'</cfloop>
-		GROUP BY DAY(ttt.date_tracked)	
-	</cfquery>
-
-
-	<cfoutput><h2 align="center">My Hours #DateFormat(Now()-x)# <br> by Client</h2></cfoutput>
-	<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
-		<tr class="list_col_hdr">
-				<td><b>Client</b></td>
-				<td><b>Hours</b></td>		
-		</tr>
-		<cfloop query = "todays_hours_by_client"> 
-			<tr class="list_col_hdr">
-				<cfif client_cid NEQ 3>
-						<td>
-						<cfoutput>#client_name#</cfoutput></td>
-					<cfelseif client_cid EQ 3 AND k_clnt_client EQ 0>
-						<td>
-						<cfoutput>#client_name#</cfoutput></td>
-					<cfelse>
-						<td>
-						<cfoutput>#client_name2#</cfoutput></td>
-				</cfif>
-					<td><cfoutput>#Hours_worked#</cfoutput></td>
-			</tr>
-		</cfloop>
-		
-		<cfloop query = "todays_hours_by_client_total"> 
-			<tr class="list_col_hdr">
-					<td><b> TotalHours</b></td>		
-					<td><cfoutput><b>#total_hours_worked#</b></cfoutput></td>							
-		</tr>
-		</cfloop>
-	</table>
-
-		<br>
-		<br>
-</cfloop>
-</div>
-
-<div style="float:left; margin-left:40px">
-<cfloop from=0 to=5 index=x>
-	<cfquery name="todays_hours_by_work_type" datasource="#application.ticket_ds#">
-		SELECT 
-			wt.work_name
-			,sum(ttt.time_tracked) AS hours_worked
-		FROM ticket_time_tracking ttt
-			INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
-			INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
-		WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
-			AND login_id = <cfloop query = "sel_login">'#login_id#'</cfloop>
-		GROUP BY wt.work_name
-	</cfquery>
-	
-
-
-
-	<cfoutput><h2 align="center">My Hours #DateFormat(Now()-x)# <br> by Work Type</h2></cfoutput>
-	<table id="todays_hours_by_work_type_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
-		<tr class="list_col_hdr">
-				<td><b>Type</b></td>
-				<td><b>Hours</b></td>		
-		</tr>
-		<cfloop query = "todays_hours_by_work_type"> 
-			<tr class="list_col_hdr">
-					<td><cfoutput>#work_name#</cfoutput></td>
-					<td><cfoutput>#Hours_worked#</cfoutput></td>
-			</tr>
-		</cfloop>
-		
-		
-		<cfloop query = "todays_hours_by_client_total"> 
-			<tr class="list_col_hdr">
-					<td><b> TotalHours</b></td>		
-					<td><cfoutput><b>#total_hours_worked#</b></cfoutput></td>							
-		</tr>
-		</cfloop>
-	</table>
-
-		<br>
-		<br>
-</cfloop>
-</div>
-
-<!--- WGG 10/02/2014 making time tracking editable --->
-<cfquery name="getWorkType" datasource="#ticket_ds#">
-	SELECT *
-	FROM work_type
+<cfquery name="my_hours" datasource="#application.ticket_ds#">
+SELECT t.cid
+,ttt.pk_ticket_time_tracking
+,t.pk_ticket
+,t.k_ticket_number
+,wt.work_name
+,client_name = 
+CASE t.k_clnt_client
+WHEN 2 THEN 'CDPHP'
+WHEN 3 THEN 'HCA'
+WHEN 4 THEN 'CIGNA'
+WHEN 5 THEN 'SCAN'
+WHEN 7 THEN 'MOLINA MAPD'
+WHEN 14 THEN 'MOLINA MP'
+WHEN 15 THEN 'SOUNDPATH'
+WHEN 99 THEN 'HCA'
+ELSE 'Unknown'
+END
+,client_name2 = 
+CASE t.cid
+WHEN 2 THEN 'CDPHP'
+WHEN 3 THEN 'HCA'
+WHEN 4 THEN 'CIGNA'
+WHEN 5 THEN 'SCAN'
+WHEN 7 THEN 'MOLINA MAPD'
+WHEN 14 THEN 'MOLINA MP'
+WHEN 15 THEN 'SOUNDPATH'
+WHEN 99 THEN 'HCA'
+ELSE 'Unknown'
+END 
+,t.subject AS ticket
+,ttt.comment
+,ttt.date_tracked
+,ttt.time_tracked
+FROM ticket_time_tracking ttt
+INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
+INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
+WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
+AND login_id =<cfloop query = "sel_login">'#login_id#'</cfloop>
+ORDER BY ttt.date_tracked
 </cfquery>
-	
-<div id="timeTrackingDiv" style="float:left; display:none; position:absolute; border:0px; left:0px; top:100px; z-index:9995; width:100%; height:200%; padding:20px;background-color: rgba(0, 0, 0, .7);">
-	<div id="timeTrackingWindow" style="position:fixed; background-color: rgba(245, 245, 245, 1);  border-radius:10px; padding:15px 15px 15px 15px; width:670px; left:32%; top:35%">
-		<b>Time Tracking (All fields are required)</b>
-		<table class="form_table">
-			<cfoutput><input type="hidden" value="#pk_ticket#" id="k_ticket2" name="k_ticket"></cfoutput>
-			<tr>
-				<td class="form_field_name">Date Worked: (mm/dd/yyyy)</td>
-				<cfoutput><td class="form_field_entry"><input name="dateTracked" id="dateTracked" value="#dateformat(now(),date_mask)#"></td></cfoutput>
-			</tr>
 
-			<!--- WGG 09/22/2014 start_time tracking for WG only --->
-			<cfif get_login.login_id EQ 'hca6'>
-				<tr>
-					<td class="form_field_name">Start Time</td>
-					<cfoutput>
-					<td class="form_field_entry"><input name="startTracked" id="startTracked" value="#TimeFormat(now(), "hh:mm:sstt")#"> (ex: For Eight AM enter 08:00 AM)</td>
-					</cfoutput>
-				</tr>
-			<cfelse>
-				<tr style="display: none;">
-					<td class="form_field_name">Start Time</td>
-					<cfoutput>
-					<td class="form_field_entry"><input name="startTracked" id="startTracked" value="#TimeFormat(now(), "hh:mm:sstt")#"> (ex: For Eight AM enter 08:00 AM)</td>
-					</cfoutput>
-				</tr>
-			</cfif>
+<cfquery name="my_hours_total" datasource="#application.ticket_ds#">
+SELECT sum(time_tracked) AS wes_hours
+FROM ticket_time_tracking ttt
+INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
+WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
+AND login_id = <cfloop query = "sel_login">'#login_id#'</cfloop>
+GROUP BY login_id
+</cfquery> 
 
-			<tr>
-				<td class="form_field_name">Time Worked: (Hours)</td>
-				<td class="form_field_entry"><input name="hrs" id="hoursTracked"> (ex: For 30 minutes enter 0.5)</td>
-				 
-			</tr>
-			<tr>
-				<td class="form_field_name">Work Type:</td>
-				<td class="form_field_entry"><cfoutput>
-					                         <select id="workType" required="true">
-						                     <option disabled value="" selected="true">--</option>
-										 	 <cfloop query="getWorkType">
-										 	 <option name="#getWorkType.work_name#" value="#pk_work_type#">#getWorkType.work_name#</option>
-										 	 </cfloop>
-											 </select>
-											 </cfoutput>
-			</tr>
-			<tr>
-				<td class="form_field_name">Comment:</td>
-				<td class="form_field_entry"><textarea rows="5" cols="60" id="time_track_comment" name="comment" wrap="hard"></textarea></td>
-			</tr>
-			<tr>
-				<cfoutput><td class="form_field_name" colspan="2"><button id="SaveComment" onclick="SaveTimeTracking(#q_ticket_id.cid#)">Save</button></cfoutput>
-				<button id="HideComment" onclick="HideTimeTracking()">Close</button></td>
-			</tr>
-		</table>
-		
-				
-	</div>
+
+<cfoutput><h2 align="center">My Hours #DateFormat(Now()-x)#</h2></cfoutput>
+<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width="400">
+<tr class="list_col_hdr">
+<td><b>Client</b></td>
+<td><b>Ticket #</b></td> 
+<td><b>Ticket</b></td> 
+<td><b>Comment</b></td> 
+<td><b>Time Started</b></td> 
+<td><b>Hours</b></td>
+<td><b>Work Type</b></td>
+<td><b>Edit</b></td> 
+</tr>
+<cfoutput>
+<cfloop query = "my_hours"> 
+<tr class="list_col_hdr">
+<td>
+<cfif client_name EQ 'Unknown'>
+<cfoutput>#client_name2#</cfoutput></td>
+<cfelse>
+<cfoutput>#client_name#</cfoutput></td><!--- this was originally #cid# and it only showed 4 because it was pulling it from another query ---> 
+</cfif>
+<td><cfoutput><a href="../ticket/list_ticket.htm?id=#pk_ticket#" target="_new">#k_ticket_number#</a></cfoutput></td>
+<td><cfoutput>#ticket#</cfoutput></td>
+<td><cfoutput>#comment#</cfoutput></td>
+<!---
+<td><cfoutput>#date_tracked#</cfoutput></td>
+--->
+<td><cfoutput>#dateformat(date_tracked, "mm-dd-yy")# #TimeFormat(date_tracked, "hh:mm tt")#</cfoutput></td>
+<td><cfoutput>#time_tracked#</cfoutput></td>
+<td><cfoutput>#work_name#</cfoutput></td>
+<!---<td><cfoutput><a href="../ticket/list_ticket.htm?id=#pk_ticket#" target="_new">#k_ticket_number#</a></cfoutput></td> --->
+<!--- WGG 10/2/2014 this works
+<td><a href="javascript:alert('Hello!');">Edit</a></td>
+--->
+<td><a href="##" onClick="OpenTimeTracking(#pk_ticket_time_tracking#);">Edit</a></td>
+</tr>
+</cfloop>
+</cfoutput>
+
+<cfloop query = "my_hours_total"> 
+<tr class="list_col_hdr">
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><b> TotalHours</b></td> 
+<td><cfoutput><b>#wes_hours#</b></cfoutput></td> 
+<td></td> 
+</tr>
+</cfloop>
+</table>
+<br>
+<br>
+</cfloop>
 </div>
+
+<div style="float:left; margin-left:40px">
+<cfloop from=0 to=5 index=x>
+<cfquery name="todays_hours_by_client" datasource="#application.ticket_ds#">
+SELECT 
+t.cid AS client_cid
+,client_name = 
+CASE t.cid
+WHEN 2 THEN 'CDPHP'
+WHEN 3 THEN 'HCA'
+WHEN 4 THEN 'CIGNA'
+WHEN 5 THEN 'SCAN'
+WHEN 7 THEN 'MOLINA MAPD'
+WHEN 14 THEN 'MOLINA MP'
+WHEN 15 THEN 'SOUNDPATH'
+ELSE 'Unknown'
+END
+,t.k_clnt_client
+,client_name2 = 
+CASE t.k_clnt_client
+WHEN 2 THEN 'CDPHP'
+WHEN 3 THEN 'HCA'
+WHEN 4 THEN 'CIGNA'
+WHEN 5 THEN 'SCAN'
+WHEN 7 THEN 'MOLINA MAPD'
+WHEN 14 THEN 'MOLINA MP'
+WHEN 15 THEN 'SOUNDPATH'
+WHEN 99 THEN 'HCA'
+ELSE 'Unknown'
+END
+,sum(ttt.time_tracked) AS hours_worked
+FROM ticket_time_tracking ttt
+INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
+WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
+AND login_id = <cfloop query = "sel_login">'#login_id#'</cfloop>
+GROUP BY t.cid,t.k_clnt_client
+</cfquery>
+
+<cfquery name="todays_hours_by_client_total" datasource="#application.ticket_ds#">
+SELECT 
+sum(ttt.time_tracked) AS total_hours_worked
+FROM ticket_time_tracking ttt
+INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
+WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
+AND login_id = <cfloop query = "sel_login">'#login_id#'</cfloop>
+GROUP BY DAY(ttt.date_tracked) 
+</cfquery>
+
+
+<cfoutput><h2 align="center">My Hours #DateFormat(Now()-x)# <br> by Client</h2></cfoutput>
+<table id="hours_by_client_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
+<tr class="list_col_hdr">
+<td><b>Client</b></td>
+<td><b>Hours</b></td> 
+</tr>
+<cfloop query = "todays_hours_by_client"> 
+<tr class="list_col_hdr">
+<cfif client_cid NEQ 3>
+<td>
+<cfoutput>#client_name#</cfoutput></td>
+<cfelseif client_cid EQ 3 AND k_clnt_client EQ 0>
+<td>
+<cfoutput>#client_name#</cfoutput></td>
+<cfelse>
+<td>
+<cfoutput>#client_name2#</cfoutput></td>
+</cfif>
+<td><cfoutput>#Hours_worked#</cfoutput></td>
+</tr>
+</cfloop>
+
+<cfloop query = "todays_hours_by_client_total"> 
+<tr class="list_col_hdr">
+<td><b> TotalHours</b></td> 
+<td><cfoutput><b>#total_hours_worked#</b></cfoutput></td> 
+</tr>
+</cfloop>
+</table>
+
+<br>
+<br>
+</cfloop>
+</div>
+
+<div style="float:left; margin-left:40px">
+<cfloop from=0 to=5 index=x>
+<cfquery name="todays_hours_by_work_type" datasource="#application.ticket_ds#">
+SELECT 
+wt.work_name
+,sum(ttt.time_tracked) AS hours_worked
+FROM ticket_time_tracking ttt
+INNER JOIN ticket t ON t.pk_ticket = ttt.k_ticket
+INNER JOIN work_type wt ON ttt.k_work_type = wt.pk_work_type
+WHERE convert(varchar(10), ttt.date_tracked, 101) = convert(varchar(10), GETDATE()-#x#, 101)
+AND login_id = <cfloop query = "sel_login">'#login_id#'</cfloop>
+GROUP BY wt.work_name
+</cfquery>
+
+
+
+
+<cfoutput><h2 align="center">My Hours #DateFormat(Now()-x)# <br> by Work Type</h2></cfoutput>
+<table id="todays_hours_by_work_type_tbl" class="list_table scrolling" scroll_height="1500" width=98%>
+<tr class="list_col_hdr">
+<td><b>Type</b></td>
+<td><b>Hours</b></td> 
+</tr>
+<cfloop query = "todays_hours_by_work_type"> 
+<tr class="list_col_hdr">
+<td><cfoutput>#work_name#</cfoutput></td>
+<td><cfoutput>#Hours_worked#</cfoutput></td>
+</tr>
+</cfloop>
+
+
+<cfloop query = "todays_hours_by_client_total"> 
+<tr class="list_col_hdr">
+<td><b> TotalHours</b></td> 
+<td><cfoutput><b>#total_hours_worked#</b></cfoutput></td> 
+</tr>
+</cfloop>
+</table>
+
+<br>
+<br>
+</cfloop>
+</div>
+
+<span id="TimeWorked"></span>
